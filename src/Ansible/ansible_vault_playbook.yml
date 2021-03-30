@@ -1,5 +1,6 @@
 name: vault_playbook
 hosts: vault_ec2_host
+#need to find a way to specify which host we want based off of environment
 
 - name: Create vault user group
   group:
