@@ -41,6 +41,18 @@ Conditions:
         - !Ref Environment  
         - prod 
 Resources:
+  myRoute:
+      Type: AWS::EC2::Route
+      Properties:
+        RouteTableId: !Ref myRouteTable
+        GatewayId: !Ref myInternetGateway
+  myRouteTable:
+      Type: AWS::EC2::RouteTable
+      Properties:
+        VpcId: !FindInMap ['EC2Details', 'CommonDetails', 'VPC']
+        Tags:
+        - Key: Environment
+          Value: !Ref Environment
   AttachGateway:
     Type: AWS::EC2::VPCGatewayAttachment
     Properties:
