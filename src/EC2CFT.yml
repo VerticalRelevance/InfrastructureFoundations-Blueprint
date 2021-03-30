@@ -1,0 +1,170 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: >-
+  Cloud Formation Template to allow for selection of various sizes of EC2
+  instances
+Parameters: 
+  Environment:
+    Description: Which account is the environment being creates
+    Type: String
+    Default: dev
+    AllowedValues:
+      - dev
+      - qa
+      - prod
+Mappings: 
+  EC2Details:
+    CommonDetails:
+      VPC: vpc-0b418e1163d8c731a 
+      InstanceType: m1.small
+    dev:
+      AMI: 'ami-0022c769'
+      AvailabilityZone: us-east-1c
+      KeyName: JacobDevKey
+      SubnetId: subnet-0806e3cb96c2d0214
+    prod:
+      AMI: 'ami-0022c769'
+      AvailabilityZone: us-east-1b
+      KeyName: JacobProdKey
+      SubnetId: subnet-00325a73053958f94
+    qa:
+      AMI: 'ami-0022c769'
+      AvailabilityZone: us-east-1a
+      KeyName: JacobQaKey
+      SubnetId: subnet-0b2361ab4c1147b05
+  RegionAndInstanceTypeToAMIID: 
+      us-east-1: 
+        dev: 'ami-0022c769'
+        prod: 'ami-0022c769'
+Conditions:
+  Prod: 
+    !Equals
+        - !Ref Environment  
+        - prod 
+Resources:
+  AttachGateway:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      VpcId: !FindInMap ['EC2Details', 'CommonDetails', 'VPC']
+      InternetGatewayId: !Ref myInternetGateway
+  myInternetGateway:
+      Type: AWS::EC2::InternetGateway
+      Properties:
+        Tags:
+        - Key: stack
+          Value: !Ref Environment
+  S3Bucket:
+    Type: AWS::S3::Bucket
+  S3BucketPolicy:
+    Type: 'AWS::S3::BucketPolicy'
+    Properties:
+      Bucket: !Ref S3Bucket
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Action: '*'
+            Effect: Allow
+            Resource:
+              - !GetAtt
+                - S3Bucket
+                - Arn
+              - !Join
+                - ''
+                - - !GetAtt
+                    - S3Bucket
+                    - Arn
+                  - /*
+            Principal:
+              AWS: '*'
+            # Condition: keeping this in just in case i need to use it at a later point
+            #   StringEquals:
+            #     's3:DataAccessPointAccount': !Ref 'AWS::AccountId'
+  S3AccessPoint:
+    Type: 'AWS::S3::AccessPoint'
+    Properties:
+      Bucket: !Ref S3Bucket
+      Name: my-access-point
+      VpcConfiguration:
+        VpcId: !FindInMap ['EC2Details', 'CommonDetails', 'VPC']
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        IgnorePublicAcls: true
+        BlockPublicPolicy: true
+        RestrictPublicBuckets: true
+  S3Endpoint:
+    Type: AWS::EC2::VPCEndpoint
+    Properties:
+      VpcId: !FindInMap ['EC2Details', 'CommonDetails', 'VPC']
+      ServiceName: !Sub 'com.amazonaws.${AWS::Region}.s3'
+  RootInstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Path: "/"
+      Roles:
+      - !Ref RootRole
+  RootRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - ec2.amazonaws.com
+          Action:
+          - sts:AssumeRole
+      Path: "/"
+  RolePolicies:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: root
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Action: "*"
+          Resource: "*"
+      Roles:
+      - !Ref RootRole
+  MyInstance:
+    Type: AWS::EC2::Instance
+    Properties:
+      IamInstanceProfile: !Ref RootInstanceProfile
+      KeyName: !FindInMap ['EC2Details', !Ref Environment, 'KeyName']
+      SubnetId: !FindInMap ['EC2Details', !Ref Environment, 'SubnetId']
+      SecurityGroupIds:
+      - !Ref 'InstanceSecurityGroup'
+      InstanceType: !FindInMap ['EC2Details', 'CommonDetails', 'InstanceType']
+      AvailabilityZone: !FindInMap ['EC2Details', !Ref Environment, 'AvailabilityZone']
+      ImageId: !FindInMap ['EC2Details', !Ref Environment, 'AMI']
+      UserData: 
+        Fn::Base64:
+          !Sub |
+            #!/bin/bash -ex
+            exec > >(tee /var/log/user-data.log|logger -t user-data -s 2>/dev/console) 2>&1
+            sudo yum install -y yum-utils
+            sudo yum-config-manager --add-repo https://rpm.releases.hashicorp.com/AmazonLinux/hashicorp.repo
+            sudo yum -y install vault
+      Tags:
+        -
+          Key: Name
+          Value: !Join ['-', [!Ref AWS::Region, Instance, 'jacob']]
+  InstanceSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+        GroupDescription: Allow http to client host
+        VpcId: !FindInMap ['EC2Details', 'CommonDetails', 'VPC']
+        SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 443
+          CidrIp: 0.0.0.0/0
+        SecurityGroupEgress:
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 443
+          CidrIp: 0.0.0.0/0
+        Tags:
+        -
+          Key: Name
+          Value: !Join ['-', [SecurityGroup, !Ref AWS::Region, !Ref Environment]]
