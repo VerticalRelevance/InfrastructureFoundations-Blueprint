@@ -1,5 +1,5 @@
 name: vault_playbook
-hosts: 
+hosts: vault_ec2_host
 
 - name: Create vault user group
   group:
