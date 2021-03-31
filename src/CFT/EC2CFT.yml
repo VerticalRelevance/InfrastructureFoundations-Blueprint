@@ -18,9 +18,9 @@ Mappings:
       InstanceType: m1.small
     dev:
       AMI: 'ami-0022c769'
-      AvailabilityZone: us-east-1c
+      AvailabilityZone: us-east-1a
       KeyName: JacobDevKey
-      SubnetId: subnet-0f973744a50c4ae86
+      SubnetId: subnet-0ec1bf2103401e3a5
     prod:
       AMI: 'ami-0022c769'
       AvailabilityZone: us-east-1b
@@ -28,9 +28,10 @@ Mappings:
       SubnetId: subnet-02cc41ade079189c2
     qa:
       AMI: 'ami-0022c769'
-      AvailabilityZone: us-east-1a
+      AvailabilityZone: us-east-1c
       KeyName: JacobQaKey
-      SubnetId: subnet-0ec1bf2103401e3a5
+      SubnetId: subnet-0f973744a50c4ae86
+      
   RegionAndInstanceTypeToAMIID: 
       us-east-1: 
         dev: 'ami-0022c769'
