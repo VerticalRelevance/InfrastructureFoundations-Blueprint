@@ -14,23 +14,23 @@ Parameters:
 Mappings: 
   EC2Details:
     CommonDetails:
-      VPC: vpc-0b418e1163d8c731a 
+      VPC: vpc-0b8ad3ab815f525e8
       InstanceType: m1.small
     dev:
       AMI: 'ami-0022c769'
       AvailabilityZone: us-east-1c
       KeyName: JacobDevKey
-      SubnetId: subnet-0806e3cb96c2d0214
+      SubnetId: subnet-0f973744a50c4ae86
     prod:
       AMI: 'ami-0022c769'
       AvailabilityZone: us-east-1b
       KeyName: JacobProdKey
-      SubnetId: subnet-00325a73053958f94
+      SubnetId: subnet-02cc41ade079189c2
     qa:
       AMI: 'ami-0022c769'
       AvailabilityZone: us-east-1a
       KeyName: JacobQaKey
-      SubnetId: subnet-0b2361ab4c1147b05
+      SubnetId: subnet-0ec1bf2103401e3a5
   RegionAndInstanceTypeToAMIID: 
       us-east-1: 
         dev: 'ami-0022c769'
@@ -41,20 +41,20 @@ Conditions:
         - !Ref Environment  
         - prod 
 Resources:
-  myRoute:
-      Type: AWS::EC2::Route
-      Properties:
-        RouteTableId: !Ref myRouteTable
-        DestinationCidrBlock: 0.0.0.0/0
-        GatewayId: !Ref myInternetGateway
-  myRouteTable:
-      Type: AWS::EC2::RouteTable
-      Properties:
-        VpcId: !FindInMap ['EC2Details', 'CommonDetails', 'VPC']
+  # myRoute:
+  #     Type: AWS::EC2::Route
+  #     Properties:
+  #       RouteTableId: !Ref myRouteTable
+  #       DestinationCidrBlock: 0.0.0.0/0
+  #       GatewayId: !Ref myInternetGateway
+  # myRouteTable:
+  #     Type: AWS::EC2::RouteTable
+  #     Properties:
+  #       VpcId: !FindInMap ['EC2Details', 'CommonDetails', 'VPC']
         
-        Tags:
-        - Key: Environment
-          Value: !Ref Environment
+  #       Tags:
+  #       - Key: Environment
+  #         Value: !Ref Environment
   AttachGateway:
     Type: AWS::EC2::VPCGatewayAttachment
     Properties:
@@ -66,49 +66,7 @@ Resources:
         Tags:
         - Key: stack
           Value: !Ref Environment
-  # S3Bucket:
-  #   Type: AWS::S3::Bucket
-  # S3BucketPolicy:
-  #   Type: 'AWS::S3::BucketPolicy'
-  #   Properties:
-  #     Bucket: !Ref S3Bucket
-  #     PolicyDocument:
-  #       Version: 2012-10-17
-  #       Statement:
-  #         - Action: '*'
-  #           Effect: Allow
-  #           Resource:
-  #             - !GetAtt
-  #               - S3Bucket
-  #               - Arn
-  #             - !Join
-  #               - ''
-  #               - - !GetAtt
-  #                   - S3Bucket
-  #                   - Arn
-  #                 - /*
-  #           Principal:
-  #             AWS: '*'
-            # Condition: keeping this in just in case i need to use it at a later point
-            #   StringEquals:
-            #     's3:DataAccessPointAccount': !Ref 'AWS::AccountId'
-  # S3AccessPoint:
-  #   Type: 'AWS::S3::AccessPoint'
-  #   Properties:
-  #     Bucket: !Ref S3Bucket
-  #     Name: my-access-point
-  #     VpcConfiguration:
-  #       VpcId: !FindInMap ['EC2Details', 'CommonDetails', 'VPC']
-  #     PublicAccessBlockConfiguration:
-  #       BlockPublicAcls: true
-  #       IgnorePublicAcls: true
-  #       BlockPublicPolicy: true
-  #       RestrictPublicBuckets: true
-  # S3Endpoint:
-  #   Type: AWS::EC2::VPCEndpoint
-  #   Properties:
-  #     VpcId: !FindInMap ['EC2Details', 'CommonDetails', 'VPC']
-  #     ServiceName: !Sub 'com.amazonaws.${AWS::Region}.s3'
+
   RootInstanceProfile:
     Type: AWS::IAM::InstanceProfile
     Properties:

@@ -343,7 +343,7 @@ Resources:
   S3AccessPoint:
     Type: 'AWS::S3::AccessPoint'
     Properties:
-      Bucket: !Ref S3Bucket
+      Bucket: hashicorptestingbucket
       Name: my-access-point
       VpcConfiguration:
         VpcId: !Ref VPC
