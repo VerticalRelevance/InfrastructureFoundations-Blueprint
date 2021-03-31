@@ -30,7 +30,7 @@ Mappings:
       ClusterName: ElastiCacheRedis
       CacheNodeType: cache.t2.micro
       CacheNodeCount: 1
-      VPCID: vpc-0b418e1163d8c731a
+      VPCID: vpc-0b8ad3ab815f525e8
   dev:
     us-east-1: 
       Subnet1: subnet-0ec1bf2103401e3a5
