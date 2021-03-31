@@ -33,16 +33,16 @@ Mappings:
       VPCID: vpc-0b418e1163d8c731a
   dev:
     us-east-1: 
-      Subnet1: subnet-0b2361ab4c1147b05 
-      Subnet2: subnet-0934f6821f400bcef
+      Subnet1: subnet-0ec1bf2103401e3a5
+      Subnet2: subnet-0f44800164bc4bd9e
   prod: 
     us-east-1:
-      Subnet1: subnet-00f98bcc936b95bb4
-      Subnet2: subnet-00325a73053958f94
+      Subnet1: subnet-02cc41ade079189c2
+      Subnet2: subnet-096bbd3fb61dc3c77
   qa: 
     us-east-1:
-      Subnet1: subnet-06d9d7cffa6a662ef
-      Subnet2: subnet-0806e3cb96c2d0214
+      Subnet1: subnet-0f973744a50c4ae86
+      Subnet2: subnet-0363590125579aea8
 
 Resources:
   SecurityGroup:
