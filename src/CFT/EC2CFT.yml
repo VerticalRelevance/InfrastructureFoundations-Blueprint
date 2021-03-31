@@ -55,17 +55,17 @@ Resources:
   #       Tags:
   #       - Key: Environment
   #         Value: !Ref Environment
-  AttachGateway:
-    Type: AWS::EC2::VPCGatewayAttachment
-    Properties:
-      VpcId: !FindInMap ['EC2Details', 'CommonDetails', 'VPC']
-      InternetGatewayId: !Ref myInternetGateway
-  myInternetGateway:
-      Type: AWS::EC2::InternetGateway
-      Properties:
-        Tags:
-        - Key: stack
-          Value: !Ref Environment
+  # AttachGateway:
+  #   Type: AWS::EC2::VPCGatewayAttachment
+  #   Properties:
+  #     VpcId: !FindInMap ['EC2Details', 'CommonDetails', 'VPC']
+  #     InternetGatewayId: !Ref myInternetGateway
+  # myInternetGateway:
+  #     Type: AWS::EC2::InternetGateway
+  #     Properties:
+  #       Tags:
+  #       - Key: stack
+  #         Value: !Ref Environment
 
   RootInstanceProfile:
     Type: AWS::IAM::InstanceProfile
