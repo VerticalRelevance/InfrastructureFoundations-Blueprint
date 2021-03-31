@@ -340,7 +340,23 @@ Resources:
     Properties:
       RouteTableId: !Ref PrivateRouteTable6
       SubnetId: !Ref PrivateSubnet6
-
+  S3AccessPoint:
+    Type: 'AWS::S3::AccessPoint'
+    Properties:
+      Bucket: !Ref S3Bucket
+      Name: my-access-point
+      VpcConfiguration:
+        VpcId: !Ref VPC
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        IgnorePublicAcls: true
+        BlockPublicPolicy: true
+        RestrictPublicBuckets: true
+  S3Endpoint:
+    Type: AWS::EC2::VPCEndpoint
+    Properties:
+      VpcId: !Ref VPC
+      ServiceName: !Sub 'com.amazonaws.${AWS::Region}.s3'
   # NoIngressSecurityGroup:
   #   Type: AWS::EC2::SecurityGroup
   #   Properties:
