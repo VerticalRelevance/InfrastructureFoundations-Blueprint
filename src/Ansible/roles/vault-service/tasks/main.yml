@@ -16,6 +16,15 @@
   yum: 
     name: vault
     state: latest
-- name: confirming that vault was installed
-  yum:
-    
+- name: Copy the hcl file to the proper location
+  copy:
+    src: roles/vault-service/tasks/vault.hcl
+    dest: /etc/
+- name: restart vault server
+  shell: systemctl restart vault
+  args:
+    executable: /bin/bash
+- name: check status
+  shell: systemctl status vault
+  args:
+    executable: /bin/bash
