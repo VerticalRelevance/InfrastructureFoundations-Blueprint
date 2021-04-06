@@ -16,3 +16,6 @@
   yum: 
     name: vault
     state: latest
+- name: confirming that vault was installed
+  yum:
+    
