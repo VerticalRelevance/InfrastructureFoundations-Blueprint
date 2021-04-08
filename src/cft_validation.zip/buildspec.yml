@@ -15,7 +15,7 @@ phases:
     - taskcat --version
     - detect-secrets --version
     - echo starting taskcat
-    - taskcat test run
+    - taskcat test run -t test_ecr
     - echo taskcat test successful
     - cd src/cft/
     - echo starting cfn-lint
