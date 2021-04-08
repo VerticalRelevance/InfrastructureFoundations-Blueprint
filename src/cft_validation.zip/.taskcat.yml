@@ -1,0 +1,10 @@
+project:
+  name: cft-validation
+  regions:
+  - us-east-1
+
+tests:
+  test_ec2:
+    template: src/cft/EC2CFT.yml
+  test_ecr:
+    template: src/cft/ECR_template.yml

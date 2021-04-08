@@ -4,13 +4,24 @@ phases:
     runtime-versions:
         ruby: 2.6    
     commands:
+    - pip install --upgrade pip
     - pip3 install awscli --upgrade --quiet
-    - pip3 install cfn-lint --quiet              
-    # - apt-get install jq git -y -q
-    - gem install cfn-nag
+    - pip3 install cfn-lint --quiet
+    - pip3 install detect-secrets --quiet            
+    - pip3 install taskcat --quiet
   build:
     commands:
-      - cd src/cft/
-      - ls
-      - cfn-lint -t ECR_template.yml EC2CFT.yml
-      - cfn_nag_scan -i -t ECR_template.yml EC2CFT.yml
+    - cfn-lint --version
+    - taskcat --version
+    - detect-secrets --version
+    - echo starting taskcat
+    - taskcat test run
+    - echo taskcat test successful
+    - cd src/cft/
+    - echo starting cfn-lint
+    - cfn-lint -b ECR_template.yml EC2CFT.yml
+    - echo cfn-lint successful
+    - echo starting detect secrets
+    - detect-secrets scan EC2CFT.yml
+    - detect-secrets scan ECR_template.yml
+    - echo detect secrets successful
