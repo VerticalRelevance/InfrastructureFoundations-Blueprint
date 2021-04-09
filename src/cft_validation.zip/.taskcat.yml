@@ -1,10 +1,13 @@
 project:
   name: cft-validation
   regions:
-  - us-east-1
+    - us-east-1
+  # s3_bucket: s3://hashicorpoutputbucket/
 
 tests:
   test_ec2:
-    template: src/cft/EC2CFT.yml
+    template: ./templates/EC2CFT.yml
+    regions:
+    - us-east-1
   test_ecr:
-    template: src/cft/ECR_template.yml
+    template: ./templates/ECR_template.yml

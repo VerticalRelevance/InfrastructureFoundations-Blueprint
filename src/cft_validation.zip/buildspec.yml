@@ -14,9 +14,9 @@ phases:
     - cfn-lint --version
     - taskcat --version
     - detect-secrets --version
-    - echo starting taskcat
-    - taskcat test run -t test_ecr
-    - echo taskcat test successful
+    # - echo starting taskcat
+    # - taskcat test run 
+    # - echo taskcat test successful
     - cd src/cft/
     - echo starting cfn-lint
     - cfn-lint -b ECR_template.yml EC2CFT.yml
