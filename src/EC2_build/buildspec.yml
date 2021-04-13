@@ -3,22 +3,18 @@ version: 0.2
 phases:
   build:
     commands:
-      - aws cloudformation create-stack --template-url s3://hashicorptestingbucket/EC2_build.zip/src/main/cft/EC2CFT.yml --stack-name jacob-ec2-test --capabilities CAPABILITY_IAM
+      - aws cloudformation create-stack --template-url https://hashicorptestingbucket.s3.amazonaws.com/EC2_build/src/main/cft/EC2CFT.yml --stack-name jacob-ec2-test --capabilities CAPABILITY_IAM
                
 reports:
   report-group-name-or-arn:
     reports_group:
       files:
         - my-test-report-file.json
-# artifacts:
-#   files:
-#     - location
-#     - location
-#   name: artifact-name
-#   discard-paths: no | yes
-#   base-directory: location
-#   exclude-paths: excluded paths
-#   enable-symlinks: no | yes
+artifacts:
+  files:
+    - '**/*'
+  name: EC2BuildSpec-$(date +%Y-%m-%d)
+  enable-symlinks: yes
 #   s3-prefix: prefix
 #   secondary-artifacts:
 #     artifactIdentifier:
