@@ -17,9 +17,8 @@ phases:
     # - echo starting taskcat
     # - taskcat test run 
     # - echo taskcat test successful
-    - cd src/cft/
     - echo starting cfn-lint
-    - cfn-lint -b ECR_template.yml EC2CFT.yml
+    - cfn-lint -b templates/ECR_template.yml templates/EC2CFT.yml
     - echo cfn-lint successful
     - echo starting detect secrets
     - detect-secrets scan EC2CFT.yml

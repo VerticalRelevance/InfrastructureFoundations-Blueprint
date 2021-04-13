@@ -3,7 +3,7 @@ version: 0.2
 phases:
   build:
     commands:
-      - aws cloudformation create-stack --template-url https://hashicorptestingbucket.s3.amazonaws.com/elasticache_build.zip/src/main/cft/ECR_template.yml --stack-name johann-ecr-test
+      - aws cloudformation create-stack --template-url https://hashicorptestingbucket.s3.amazonaws.com/elasticache_build/src/main/cft/ECR_template.yml --stack-name johann-ecr-test
                
 reports:
   report-group-name-or-arn:
