@@ -3,7 +3,7 @@ version: 0.2
 phases:
   build:
     commands:
-      - aws cloudformation create-stack --template-url s3://hashicorptestingbucket/elasticache_build.zip/src/main/cft/ECR_template.yml --stack-name johann-ecr-test
+      - aws cloudformation create-stack --template-url https://hashicorptestingbucket.s3.amazonaws.com/elasticache_build.zip/src/main/cft/ECR_template.yml --stack-name johann-ecr-test
                
 reports:
   report-group-name-or-arn:
@@ -11,27 +11,8 @@ reports:
       files:
         - my-test-report-file.json
 # artifacts:
-#   files:
-#     - location
-#     - location
-#   name: artifact-name
-#   discard-paths: no | yes
-#   base-directory: location
-#   exclude-paths: excluded paths
-#   enable-symlinks: no | yes
-#   s3-prefix: prefix
-#   secondary-artifacts:
-#     artifactIdentifier:
-#       files:
-#         - location
-#         - location
-#       name: secondary-artifact-name
-#       discard-paths: no | yes
-#       base-directory: location
-#     artifactIdentifier:
-#       files:
-#         - location
-#         - location
-#       discard-paths: no | yes
-#       base-directory: location
-
+#   files: 
+#     - '**/*'
+#   name: ecrArtifact
+#   enable-symlinks: yes
+ 
