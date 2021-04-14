@@ -10,9 +10,9 @@ reports:
     reports_group:
       files:
         - my-test-report-file.json
-# artifacts:
-#   files: 
-#     - '**/*'
-#   name: ecrArtifact
-#   enable-symlinks: yes
+artifacts:
+  files: 
+    - '**/*'
+  name: ecrArtifact-$(date +%Y-%m-%d)
+  enable-symlinks: yes
  
