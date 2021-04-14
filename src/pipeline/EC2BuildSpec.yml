@@ -1,0 +1,59 @@
+CodePipeline:
+  Type: AWS::CodePipeline::Pipeline
+  Properties:
+    ArtifactStore:
+      Location: !Ref ArtifactStore
+      Type: s3
+    RoleArn: arn:aws:iam::396791034774:role/service-role/pipeline-testing
+    Stages:
+      - Name: Source
+        Actions:
+            - Name: EC2Source
+              ActionTypeId:
+                Category: Source
+                Owner: AWS
+                Provider: S3
+                Version: 1
+              OutputArtifacts:
+              - Name: EC2Artifact
+              Configuration:
+                S3Bucket: hashicorptestingbucket
+                S3ObjectKey: EC2_build/EC2_build.zip
+            - Name: validationSource
+              ActionTypeId:
+                Category: Source
+                Owner: AWS
+                Provider: S3
+                Version: 1
+              OutputArtifacts:
+              - Name: validationArtifact
+              Configuration:
+                S3Bucket: hashicorptestingbucket
+                S3ObjectKey: cft_validation/cft_val.zip
+      - Name: Validation
+        Actions:
+          ActionTypeId:
+            Category: Build
+            Owner: AWS
+            Provider: CodeBuild
+            Version: 1
+          Name: ValidationBuild
+          InputArtifacts: 
+            - valArtifact
+          Configuration:
+            ProjectName: cft-validation
+      - Name: deployToCatalog
+        Actions:
+          ActionTypeId:
+            Category: Deploy
+            Owner: AWS
+            Provider: ServiceCatalog
+            Version: 1
+          Name: CatalogDeploy
+          InputArtifacts:
+            - EC2Artifact
+          Configuration:
+            TemplateFilePath: /src/main/cft/EC2CFT.yml
+            ProductVersionName: Version-1.0
+            ProductType: CLOUD_FORMATION_TEMPLATE
+            ProductId: prod-46wlga2juncme
