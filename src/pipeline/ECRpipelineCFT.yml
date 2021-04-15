@@ -1,70 +1,80 @@
-CatalogProduct:
-  Type: AWS::ServiceCatalog::CloudFormationProduct
-  Properties:
-    Name: Johann-ecr-test
-    Owner: Vertical Relevance
-    ProvisioningArtifactParameters:
-      Info:
-        LoadTemplateFromURL: https://hashicorptestingbucket.s3.amazonaws.com/elasticache_build/src/main/cft/ECR_template.yml
+# Parameters:
+#   ArtifactStore:
+#   S3CFTZIP: 
+#     Description: Give path to zip file of CFT. For Example "cft_validation/cft_val.zip"
 
-CodePipeline:
-  Type: AWS::CodePipeline::Pipeline
-  Properties:
-    ArtifactStore:
-      Location: !Ref ArtifactStore
-      Type: s3
-    RoleArn: arn:aws:iam::396791034774:role/service-role/pipeline-testing
-    Stages:
-      - Name: Source
-        Actions:
-          - Name: ecrSource
-            ActionTypeId:
-              Category: Source
-              Owner: AWS
-              Provider: S3
-              Version: 1
-            OutputArtifacts:
-            - Name: ecrArt
-            Configuration:
-              S3Bucket: hashicorptestingbucket
-              S3ObjectKey: elasticache_build/ecr_file.zip
-          - Name: valSource
-            ActionTypeId:
-              Category: Source
-              Owner: AWS
-              Provider: S3
-              Version: 1
-            OutputArtifacts:
-            - Name: valArt
-            Configuration:
-              S3Bucket: hashicorptestingbucket
-              S3ObjectKey: cft_validation/cft_val.zip
-      - Name: Validation
-        Actions: 
-          ActionTypeId: 
-            Category: Build
-            Owner: AWS
-            Provider: CodeBuild
-            Version: 1
-          Name: ValBuild
-          InputArtifacts:
-            - valArt
-          Configuration:
-            ProjectName: cft-validation
-      - Name: Catalog
-        Actions:
-          ActionTypeId:
-            Category: Deploy
-            Owner: AWS
-            Provider: ServiceCatalog
-            Version: 1
-          Name: CatalogDeploy
-          InputArtifacts:
-            - ecrArt
-          Configuration:
-            TemplateFilePath: /src/main/cft/ECR_template.yml
-            ProductVersionName: RedisTest
-            ProductType: CLOUD_FORMATION_TEMPLATE
-            ProductId: prod-xwootx74f3zzc
+
+Resources:  
+  # CatalogProduct:
+  #   Type: AWS::ServiceCatalog::CloudFormationProduct
+  #   Properties:
+  #     Name: ecr-test1
+  #     Owner: Vertical Relevance
+  #   ProvisioningArtifactParameters:
+  #     ProvisioningArtifactProperties:
+  #       Info:
+  #         LoadTemplateFromURL: "https://hashicorptestingbucket.s3.amazonaws.com/elasticache_build/src/main/cft/ECR_template.yml"
+
+
+  CodePipeline:
+    Type: AWS::CodePipeline::Pipeline
+    Properties:
+      Name: CFT-Pipeline-test
+      ArtifactStore:
+        Location: artifacttestingbucket
+        Type: S3
+      RoleArn: arn:aws:iam::396791034774:role/service-role/pipeline-testing
+      Stages:
+        - Name: Source
+          Actions:
+            - Name: ecrSource
+              ActionTypeId:
+                Category: Source
+                Owner: AWS
+                Provider: S3
+                Version: 1
+              OutputArtifacts:
+                - Name: ecrArt
+              Configuration:
+                S3Bucket: hashicorptestingbucket
+                S3ObjectKey: elasticache_build/ecr_file.zip #!Ref S3CFTZIP
+            - Name: valSource
+              ActionTypeId:
+                Category: Source
+                Owner: AWS
+                Provider: S3
+                Version: 1
+              OutputArtifacts:
+                - Name: valArt
+              Configuration:
+                S3Bucket: hashicorptestingbucket
+                S3ObjectKey: cft_validation/cft_val.zip  #change to mapping
+        - Name: Validation
+          Actions:
+            - Name: ValBuild 
+              ActionTypeId: 
+                Category: Build
+                Owner: AWS
+                Provider: CodeBuild
+                Version: 1
+              InputArtifacts:
+                - Name: valArt
+              Configuration:
+                ProjectName: cft-validation
+        - Name: Catalog
+          Actions:
+            - Name: CatalogDeploy
+              ActionTypeId:
+                Category: Deploy
+                Owner: AWS
+                Provider: ServiceCatalog
+                Version: 1
+              InputArtifacts:
+                - Name: ecrArt
+              Configuration:
+                TemplateFilePath: /src/main/cft/ECR_template.yml
+                ProductVersionName: RedisTest
+                ProductType: CLOUD_FORMATION_TEMPLATE
+                ProductId: prod-xwootx74f3zzc #!Ref CatalogProduct
 
 
