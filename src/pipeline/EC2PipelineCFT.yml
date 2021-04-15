@@ -13,7 +13,8 @@ Parameters:
     Description: Please enter the VPC used for the project
   ArtifactStoreParameter:
     Description: The artifact store
-    Type: AWS::S3::Bucket
+ 
+   Type: AWS::S3::Bucket
     Properties:
 
   
@@ -27,7 +28,6 @@ Parameters:
 # -CodeBuild Artifacts: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-codebuild-project-artifacts.html
 # -Dynamic References: https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/dynamic-references.html
 Mappings:
-
 
 Resources:
   CodePipeline:
