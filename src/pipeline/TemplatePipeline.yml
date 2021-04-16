@@ -1,4 +1,5 @@
 Parameters:
+#Why are they ordered alphabetically when creating the stack regardless of how we place them here?
   VPC:
     Description: Please select the VPC used for the project
     Type: AWS::EC2::VPC::Id
