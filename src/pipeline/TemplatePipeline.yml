@@ -5,30 +5,22 @@ Parameters:
   Subnet:
     Description: Please select the subnet to be used for this configuration
     Type: AWS::EC2::Subnet::Id
-  S3CFTZIP: 
-    Description: Give path to zip file of CFT. For Example "cft_validation/cft_val.zip"
-    Type: String
-    Default: elasticache_build/ecr_file.zip
-  TemplateName:
-    Description: Please enter the file name inlcuding .yml
-    Type: String
   WhichInstance:
+    Description: What program will you be installing?
+    Type: String
+    AllowedValues:
       - ElastiCache
       - EC2
-#artifact store(its a bucket where people will store their artifacts), should we make it ourselves or allow them to input it?
-#
-
-
 Mappings:
   PipelineDetails:
     EC2:
       TemplateSource: ec2Art
       S3CFTZIP: EC2_build/EC2_build.zip
-      FileName: /src/main/cft/EC2CFT.yml
+      FileName: /src/main/cft/EC2CFT.yml 
     ElastiCache:
       TemplateSource: ecrArt
       S3CFTZIP: elasticache_build/ecr_file.zip
-      FileName: /src/main/cft/ECR_template.yml
+      FileName: /src/main/cft/ECR_template.yml 
     CommonVariables:
       Provider: S3
       FileBucket: hashicorptestingbucket
@@ -37,8 +29,7 @@ Mappings:
       ValSource: valArt
       ValZip: cft_validation/cft_val.zip
       ProjectName: cft-validation
-      
-
+      #/src/main/cft/ECR_template.yml  #join str.join(/src/main/cft/, userinput) %Y %m %d
 Resources:  
   # ArtifactStoreParameter:
   #   Description: The artifact store
@@ -58,35 +49,35 @@ Resources:
     Properties:
       Name: CFT-Pipeline-test
       ArtifactStore:
-        Location: !FindInMap ['PipelineDetails', 'ArtifactVariables', 'ArtifactBucket']  #artifacttestingbucket #become user input for artifact store
-        Type: !FindInMap ['PipelineDetails','CommonVariables', 'Provider']  #S3 
-      RoleArn: !FindInMap ['PipelineDetails', 'CommonVariables','RoleArn']  #arn:aws:iam::396791034774:role/service-role/pipeline-testing 
+        Location: !FindInMap ['PipelineDetails', 'CommonVariables', 'ArtifactBucket']
+        Type: !FindInMap ['PipelineDetails','CommonVariables', 'Provider']
+      RoleArn: !FindInMap ['PipelineDetails', 'CommonVariables','RoleArn']
       Stages:
         - Name: Source
           Actions:
-            - Name: ecrSource
+            - Name: instanceSource
               ActionTypeId:
                 Category: Source
                 Owner: AWS
-                Provider: !FindInMap ['PipelineDetails','CommonVariables', 'Provider'] #S3 #add to map
+                Provider: !FindInMap ['PipelineDetails','CommonVariables', 'Provider']
                 Version: 1
-              OutputArtifacts:
-                - Name: !FindInMap ['PipelineDetails', 'ArtifactVariables', 'TemplateSource'] #ecrArt #add to map
+              OutputArtifacts: 
+                - Name: !FindInMap ['PipelineDetails', !Ref WhichInstance, 'TemplateSource'] #join str.join(/src/main/cft/, userinput) %Y %m %d 
               Configuration:
-                S3Bucket: !FindInMap ['PipelineDetails', 'CommonVariables', 'FileBucket'] #hashicorptestingbucket #add to map
-                S3ObjectKey: !Ref S3CFTZIP
+                S3Bucket: !FindInMap ['PipelineDetails', 'CommonVariables', 'FileBucket']
+                S3ObjectKey: !FindInMap ['PipelineDetails',!Ref WhichInstance, 'S3CFTZIP']
               RunOrder: '1'
             - Name: valSource
               ActionTypeId:
                 Category: Source
                 Owner: AWS
-                Provider: !FindInMap ['PipelineDetails','CommonVariables', 'Provider'] #S3 #add to map
+                Provider: !FindInMap ['PipelineDetails','CommonVariables', 'Provider']
                 Version: 1
               OutputArtifacts:
-                - Name: !FindInMap ['PipelineDetails', 'ArtifactVariables', 'ValSource'] #valArt #add to map
+                - Name: !FindInMap ['PipelineDetails', 'CommonVariables', 'ValSource']
               Configuration:
-                S3Bucket: !FindInMap ['PipelineDetails', 'CommonVariables', 'FileBucket'] #hashicorptestingbucket #add to map
-                S3ObjectKey: !FindInMap ['PipelineDetails', 'Validation', 'ValZip'] #cft_validation/cft_val.zip  #change to mapping
+                S3Bucket: !FindInMap ['PipelineDetails', 'CommonVariables', 'FileBucket']
+                S3ObjectKey: !FindInMap ['PipelineDetails', 'CommonVariables', 'ValZip']
               RunOrder: '2'
         - Name: Validation
           Actions:
@@ -97,11 +88,11 @@ Resources:
                 Provider: CodeBuild
                 Version: 1
               InputArtifacts:
-                - Name: !FindInMap ['PipelineDetails', 'ArtifactVariables', 'ValSource'] #valArt #add to map
+                - Name: !FindInMap ['PipelineDetails', 'CommonVariables', 'ValSource']
               Configuration:
-                ProjectName: !FindInMap ['PipelineDetails', 'Validation', 'ProjectName'] #cft-validation #add to map
+                ProjectName: !FindInMap ['PipelineDetails', 'CommonVariables', 'ProjectName']
               RunOrder: '3'
-        - Name: Catalog
+        - Name: Catalog #Why is this completed before validation is completed?
           Actions:
             - Name: CatalogDeploy
               ActionTypeId:
@@ -110,12 +101,12 @@ Resources:
                 Provider: ServiceCatalog
                 Version: 1
               InputArtifacts:
-                - Name: !FindInMap ['PipelineDetails', 'ArtifactVariables', 'TemplateSource'] #ecrArt #add to map
+                - Name: !FindInMap ['PipelineDetails', !Ref WhichInstance, 'TemplateSource']
               Configuration:
-                TemplateFilePath: /src/main/cft/ECR_template.yml  #join str.join(/src/main/cft/, userinput) %Y %m %d
-                ProductVersionName: RedisTest
+                TemplateFilePath: !FindInMap ['PipelineDetails', !Ref WhichInstance, 'FileName']
+                ProductVersionName: !Ref WhichInstance
                 ProductType: CLOUD_FORMATION_TEMPLATE
-                ProductId: !Ref CatalogProduct #prod-xwootx74f3zzc 
+                ProductId: !Ref CatalogProduct
               RunOrder: '4'
 
 
