@@ -19,16 +19,16 @@ Parameters:
 Mappings:
   PipelineDetails:
     CommonVariables:
-      provider: S3
-      file_bucket: hashicorptestingbucket
-      role_arn: arn:aws:iam::396791034774:role/service-role/pipeline-testing
+      Provider: S3
+      FileBucket: hashicorptestingbucket
+      RoleArn: arn:aws:iam::396791034774:role/service-role/pipeline-testing
     ArtifactVariables:
-      Val_Source: valArt
-      Template_Source: ecrArt
-      artifact_bucket: artifacttestingbucket
+      ValSource: valArt
+      TemplateSource: ecrArt
+      ArtifactBucket: artifacttestingbucket
     Validation:
-      Val_Zip: cft_validation/cft_val.zip
-      Project_Name: cft-validation
+      ValZip: cft_validation/cft_val.zip
+      ProjectName: cft-validation
 
 Resources:  
   # ArtifactStoreParameter:
@@ -40,18 +40,17 @@ Resources:
     Properties:
       Name: ecr-test1
       Owner: Vertical Relevance
-    ProvisioningArtifactParameters:
-      ProvisioningArtifactProperties:
-        Info:
-          LoadTemplateFromURL: "https://hashicorptestingbucket.s3.amazonaws.com/elasticache_build/src/main/cft/ECR_template.yml" #add to map
+      ProvisioningArtifactParameters:
+        - Info:
+            LoadTemplateFromURL: https://hashicorptestingbucket.s3.amazonaws.com/elasticache_build/src/main/cft/ECR_template.yml #add to map
   CodePipeline:
     Type: AWS::CodePipeline::Pipeline
     Properties:
       Name: CFT-Pipeline-test
       ArtifactStore:
-        Location: !FindInMap ['PipelineDetails', 'ArtifactVariables', 'artifact_bucket']  #artifacttestingbucket 
-        Type: !FindInMap ['PipelineDetails','CommonVariables', 'provider']  #S3 
-      RoleArn: !FindInMap ['PipelineDetails', 'CommonVariables','role_arn']  #arn:aws:iam::396791034774:role/service-role/pipeline-testing #add to map
+        Location: !FindInMap ['PipelineDetails', 'ArtifactVariables', 'ArtifactBucket']  #artifacttestingbucket 
+        Type: !FindInMap ['PipelineDetails','CommonVariables', 'Provider']  #S3 
+      RoleArn: !FindInMap ['PipelineDetails', 'CommonVariables','RoleArn']  #arn:aws:iam::396791034774:role/service-role/pipeline-testing #add to map
       Stages:
         - Name: Source
           Actions:
@@ -59,25 +58,25 @@ Resources:
               ActionTypeId:
                 Category: Source
                 Owner: AWS
-                Provider: !FindInMap ['PipelineDetails','CommonVariables', 'provider'] #S3 #add to map
+                Provider: !FindInMap ['PipelineDetails','CommonVariables', 'Provider'] #S3 #add to map
                 Version: 1
               OutputArtifacts:
-                - Name: !FindInMap ['PipelineDetails', 'ArtifactVariables', 'Template_Source'] #ecrArt #add to map
+                - Name: !FindInMap ['PipelineDetails', 'ArtifactVariables', 'TemplateSource'] #ecrArt #add to map
               Configuration:
-                S3Bucket: !FindInMap ['PipelineDetails', 'CommonVariables', 'file_bucket'] #hashicorptestingbucket #add to map
+                S3Bucket: !FindInMap ['PipelineDetails', 'CommonVariables', 'FileBucket'] #hashicorptestingbucket #add to map
                 S3ObjectKey: !Ref S3CFTZIP
               RunOrder: '1'
             - Name: valSource
               ActionTypeId:
                 Category: Source
                 Owner: AWS
-                Provider: !FindInMap ['PipelineDetails','CommonVariables', 'provider'] #S3 #add to map
+                Provider: !FindInMap ['PipelineDetails','CommonVariables', 'Provider'] #S3 #add to map
                 Version: 1
               OutputArtifacts:
-                - Name: !FindInMap ['PipelineDetails', 'ArtifactVariables', 'Val_Source'] #valArt #add to map
+                - Name: !FindInMap ['PipelineDetails', 'ArtifactVariables', 'ValSource'] #valArt #add to map
               Configuration:
-                S3Bucket: !FindInMap ['PipelineDetails', 'CommonVariables', 'file_bucket'] #hashicorptestingbucket #add to map
-                S3ObjectKey: !FindInMap ['PipelineDetails', 'Validation', 'Val_Zip'] #cft_validation/cft_val.zip  #change to mapping
+                S3Bucket: !FindInMap ['PipelineDetails', 'CommonVariables', 'FileBucket'] #hashicorptestingbucket #add to map
+                S3ObjectKey: !FindInMap ['PipelineDetails', 'Validation', 'ValZip'] #cft_validation/cft_val.zip  #change to mapping
               RunOrder: '2'
         - Name: Validation
           Actions:
@@ -88,9 +87,9 @@ Resources:
                 Provider: CodeBuild
                 Version: 1
               InputArtifacts:
-                - Name: !FindInMap ['PipelineDetails', 'ArtifactVariables', 'Val_Source'] #valArt #add to map
+                - Name: !FindInMap ['PipelineDetails', 'ArtifactVariables', 'ValSource'] #valArt #add to map
               Configuration:
-                ProjectName: !FindInMap ['PipelineDetails', 'Validation', 'Project_Name'] #cft-validation #add to map
+                ProjectName: !FindInMap ['PipelineDetails', 'Validation', 'ProjectName'] #cft-validation #add to map
               RunOrder: '3'
         - Name: Catalog
           Actions:
@@ -101,12 +100,12 @@ Resources:
                 Provider: ServiceCatalog
                 Version: 1
               InputArtifacts:
-                - Name: !FindInMap ['PipelineDetails', 'ArtifactVariables', 'Template_Source'] #ecrArt #add to map
+                - Name: !FindInMap ['PipelineDetails', 'ArtifactVariables', 'TemplateSource'] #ecrArt #add to map
               Configuration:
                 TemplateFilePath: /src/main/cft/ECR_template.yml  #join str.join(/src/main/cft/, userinput) %Y %m %d
                 ProductVersionName: RedisTest
                 ProductType: CLOUD_FORMATION_TEMPLATE
-                ProductId: prod-xwootx74f3zzc #!Ref CatalogProduct
+                ProductId: !Ref CatalogProduct #prod-xwootx74f3zzc 
               RunOrder: '4'
 
 
