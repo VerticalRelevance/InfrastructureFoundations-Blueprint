@@ -45,6 +45,28 @@ Resources:
         - Name: CreateCatalogProduct
           Info:
             LoadTemplateFromURL: https://hashicorptestingbucket.s3.amazonaws.com/elasticache_build/src/main/cft/ECR_template.yml #make blank file
+
+  Portfolio:
+    Type: AWS::ServiceCatalog::Portfolio
+    Properties:
+      Description: Portfolio to host instance products 
+      DisplayName: Desired Instances 
+      ProviderName: Vertical Relevance
+
+  ProductToPortfolio:
+    Type: AWS::ServiceCatalog::PortfolioProductAssociation
+    Properties:
+      PortfolioId: !Ref Portfolio
+      ProductId: !Ref CatalogProduct
+      
+
+  EndUsers:
+    Type: AWS::ServiceCatalog::PortfolioPrincipalAssociation
+    Properties:
+      PortfolioId: !Ref Portfolio
+      PrincipalARN: arn:aws:iam::396791034774:group/EndUsers
+      PrincipalType: IAM
+
   CodePipeline:
     Type: AWS::CodePipeline::Pipeline
     Properties:
