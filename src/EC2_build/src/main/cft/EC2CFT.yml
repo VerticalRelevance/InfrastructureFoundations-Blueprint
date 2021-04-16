@@ -102,7 +102,9 @@ Resources:
             mkdir HCVault
             aws s3 cp --recursive s3://hashicorptestingbucket/ HCVault
             cd HCVault/Ansible-vault/Ansible
+            pwd
             ansible-playbook install_vault.yml
+            systemctl status vault
       Tags:
         -
           Key: Name
