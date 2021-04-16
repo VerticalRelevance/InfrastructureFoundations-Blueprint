@@ -12,23 +12,32 @@ Parameters:
   TemplateName:
     Description: Please enter the file name inlcuding .yml
     Type: String
+  WhichInstance:
+      - ElastiCache
+      - EC2
 #artifact store(its a bucket where people will store their artifacts), should we make it ourselves or allow them to input it?
 #
 
 
 Mappings:
   PipelineDetails:
+    EC2:
+      TemplateSource: ec2Art
+      S3CFTZIP: EC2_build/EC2_build.zip
+      FileName: /src/main/cft/EC2CFT.yml
+    ElastiCache:
+      TemplateSource: ecrArt
+      S3CFTZIP: elasticache_build/ecr_file.zip
+      FileName: /src/main/cft/ECR_template.yml
     CommonVariables:
       Provider: S3
       FileBucket: hashicorptestingbucket
       RoleArn: arn:aws:iam::396791034774:role/service-role/pipeline-testing
-    ArtifactVariables:
-      ValSource: valArt
-      TemplateSource: ecrArt
       ArtifactBucket: artifacttestingbucket
-    Validation:
+      ValSource: valArt
       ValZip: cft_validation/cft_val.zip
       ProjectName: cft-validation
+      
 
 Resources:  
   # ArtifactStoreParameter:
@@ -41,16 +50,17 @@ Resources:
       Name: ecr-test1
       Owner: Vertical Relevance
       ProvisioningArtifactParameters:
-        - Info:
-            LoadTemplateFromURL: https://hashicorptestingbucket.s3.amazonaws.com/elasticache_build/src/main/cft/ECR_template.yml #add to map
+        - Name: CreateCatalogProduct
+          Info:
+            LoadTemplateFromURL: https://hashicorptestingbucket.s3.amazonaws.com/elasticache_build/src/main/cft/ECR_template.yml #make blank file
   CodePipeline:
     Type: AWS::CodePipeline::Pipeline
     Properties:
       Name: CFT-Pipeline-test
       ArtifactStore:
-        Location: !FindInMap ['PipelineDetails', 'ArtifactVariables', 'ArtifactBucket']  #artifacttestingbucket 
+        Location: !FindInMap ['PipelineDetails', 'ArtifactVariables', 'ArtifactBucket']  #artifacttestingbucket #become user input for artifact store
         Type: !FindInMap ['PipelineDetails','CommonVariables', 'Provider']  #S3 
-      RoleArn: !FindInMap ['PipelineDetails', 'CommonVariables','RoleArn']  #arn:aws:iam::396791034774:role/service-role/pipeline-testing #add to map
+      RoleArn: !FindInMap ['PipelineDetails', 'CommonVariables','RoleArn']  #arn:aws:iam::396791034774:role/service-role/pipeline-testing 
       Stages:
         - Name: Source
           Actions:
