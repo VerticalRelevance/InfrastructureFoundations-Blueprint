@@ -101,7 +101,7 @@ Resources:
             amazon-linux-extras install ansible2 -y
             mkdir HCVault
             aws s3 cp --recursive s3://hashicorptestingbucket/ HCVault
-            cd HCVault/InfrastructureFoundations-RefArchitecture/src/Ansible
+            cd HCVault/Ansible-vault/Ansible
             ansible-playbook install_vault.yml
       Tags:
         -
