@@ -131,5 +131,18 @@ Resources:
                 ProductType: CLOUD_FORMATION_TEMPLATE
                 ProductId: !Ref CatalogProduct
               RunOrder: '4'
+  Webhook:
+    Type: AWS::CodePipeline::Webhook
+    Properties:
+      Name: GitHub Hook 
+      Authentication: GITHUB_HMAC
+      AuthenticationConfiguration:
+        SecretToken: 
+      Filters:
+      - JsonPath: "$.ref"
+        MatchEquals: refs/heads/ansible-vault
+      TargetAction: Source
+      TargetPipeline: !Ref CodePipeline
+      TargetPipelineVersion: !GetAtt CodePipeline.Version
 
 
