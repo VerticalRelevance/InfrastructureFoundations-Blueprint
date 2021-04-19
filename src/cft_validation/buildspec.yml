@@ -11,16 +11,9 @@ phases:
     - pip3 install taskcat --quiet
   build:
     commands:
-    - cfn-lint --version
-    - taskcat --version
-    - detect-secrets --version
     # - echo starting taskcat
     # - taskcat test run 
     # - echo taskcat test successful
-    - echo starting cfn-lint
-    - cfn-lint -b templates/ECR_template.yml templates/EC2CFT.yml
-    - echo cfn-lint successful
-    - echo starting detect secrets
+    - cfn-lint -b templates/ECR_template.yml templates/EC2CFT.yml #How do we reference a singular template that was passed in at a different stage? If its through artifacts, how do we ensure its the most recent artifact?
     - detect-secrets scan EC2CFT.yml
     - detect-secrets scan ECR_template.yml
-    - echo detect secrets successful

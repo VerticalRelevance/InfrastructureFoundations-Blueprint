@@ -13,6 +13,9 @@ Parameters:
       - ElastiCache
       - EC2
 Mappings:
+  CodeBuildDetails:
+    ValidationVariables:
+      SecurityRole: arn:aws:iam::396791034774:role/service-role/codebuild-ecr-test-service-role
   PipelineDetails:
     EC2:
       TemplateSource: ec2Art
@@ -29,7 +32,7 @@ Mappings:
       FileBucket: hashicorptestingbucket
       RoleArn: arn:aws:iam::396791034774:role/service-role/pipeline-testing
       ArtifactBucket: artifacttestingbucket
-      ValSource: valArt
+      ValSource: ValArt
       ValZip: cft_validation/cft_val.zip
       ProjectName: cft-validation
       #/src/main/cft/ECR_template.yml  #join str.join(/src/main/cft/, userinput) %Y %m %d
@@ -39,6 +42,35 @@ Resources:
   #   Description: The artifact store
   #   Type: AWS::S3::Bucket
   #   Properties:
+  ValidationCodeBuild:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Name: ValCodeBuild
+      ServiceRole: !FindInMap ['CodeBuildDetails', 'ValidationVariables', 'SecurityRole']
+      Artifacts:
+        Type: S3
+        Path: CFT-Pipeline-test
+        Packaging: ZIP
+        NamespaceType: BUILD_ID
+        Name: ValOutArt.zip
+        Location: artifacttestingbucket
+
+      Environment:
+        Type: LINUX_CONTAINER
+        ComputeType: BUILD_GENERAL1_MEDIUM
+        Image: aws/codebuild/standard:1.0
+      Source:
+        Type: S3
+        Location: hashicorptestingbucket/cft_validation/cft_val.zip
+      
+      # For github source
+      # Location:
+      # Triggers:
+      #   Webhook: true
+      #   FilterGroups:
+      #     #come back to this
+
+
   CatalogProduct:
     Type: AWS::ServiceCatalog::CloudFormationProduct
     Properties:
@@ -78,46 +110,34 @@ Resources:
         Type: !FindInMap ['PipelineDetails','CommonVariables', 'Provider']
       RoleArn: !FindInMap ['PipelineDetails', 'CommonVariables','RoleArn']
       Stages:
+        - Name: Source
+          Actions: 
+            - Name: SourceAction
+              ActionTypeId:
+                Category: Source
+                Owner: ThirdParty
+                Provider: GitHub
+                Version: 1
+              Configuration:
+                Owner: jdsouza-vr
+                Repo: InfrastructureFoundations-RefArchitecture
+                Branch: ansible-vault
+                OAuthToken: "{{resolve:secretsmanager:pipeline-github:secretstring:GitHubPersonalAccessToken}}"
+                PollforSourceChanges: false
         # - Name: Source
-        #   Actions: 
-        #     - Name: SourceAction
+        #   Actions:
+        #     - Name: valSource
         #       ActionTypeId:
         #         Category: Source
-        #         Owner: ThirdParty
-        #         Provider: GitHub
+        #         Owner: AWS
+        #         Provider: !FindInMap ['PipelineDetails','CommonVariables', 'Provider']
         #         Version: 1
+        #       OutputArtifacts:
+        #         - Name: !FindInMap ['PipelineDetails', 'CommonVariables', 'ValSource']
         #       Configuration:
-        #         Owner: jdsouza-vr
-        #         Repo: InfrastructureFoundations-RefArchitecture
-        #         Branch: ansible-vault
-        #         OAuthToken: "{{resolve:secretsmanager:pipeline-github:secretstring:GitHubPersonalAccessToken}}"
-        #         PollforSourceChanges: false
-        - Name: Source
-          Actions:
-            - Name: instanceSource
-              ActionTypeId:
-                Category: Source
-                Owner: AWS
-                Provider: !FindInMap ['PipelineDetails','CommonVariables', 'Provider']
-                Version: 1
-              OutputArtifacts: 
-                - Name: !FindInMap ['PipelineDetails', !Ref WhichInstance, 'TemplateSource'] #join str.join(/src/main/cft/, userinput) %Y %m %d 
-              Configuration:
-                S3Bucket: !FindInMap ['PipelineDetails', 'CommonVariables', 'FileBucket']
-                S3ObjectKey: !FindInMap ['PipelineDetails',!Ref WhichInstance, 'S3CFTZIP']
-              RunOrder: '1'
-            - Name: valSource
-              ActionTypeId:
-                Category: Source
-                Owner: AWS
-                Provider: !FindInMap ['PipelineDetails','CommonVariables', 'Provider']
-                Version: 1
-              OutputArtifacts:
-                - Name: !FindInMap ['PipelineDetails', 'CommonVariables', 'ValSource']
-              Configuration:
-                S3Bucket: !FindInMap ['PipelineDetails', 'CommonVariables', 'FileBucket']
-                S3ObjectKey: !FindInMap ['PipelineDetails', 'CommonVariables', 'ValZip']
-              RunOrder: '2'
+        #         S3Bucket: !FindInMap ['PipelineDetails', 'CommonVariables', 'FileBucket']
+        #         S3ObjectKey: !FindInMap ['PipelineDetails', 'CommonVariables', 'ValZip']
+        #       RunOrder: '2'
         - Name: Validation
           Actions:
             - Name: ValBuild 
@@ -127,9 +147,13 @@ Resources:
                 Provider: CodeBuild
                 Version: 1
               InputArtifacts:
-                - Name: !FindInMap ['PipelineDetails', 'CommonVariables', 'ValSource']
+                - Name: !FindInMap ['PipelineDetails', 'CommonVariables', 'ValSource'] 
               Configuration:
-                ProjectName: !FindInMap ['PipelineDetails', 'CommonVariables', 'ProjectName']
+                ProjectName: !Ref ValidationCodeBuild
+                #ProjectName: !FindInMap ['PipelineDetails', 'CommonVariables', 'ProjectName'] #!Ref projectname
+              OutputArtifacts:
+                - Name: ValOutArt
+
               RunOrder: '3'
         - Name: Catalog #Why is this completed before validation is completed?
           Actions:
@@ -140,25 +164,25 @@ Resources:
                 Provider: ServiceCatalog
                 Version: 1
               InputArtifacts:
-                - Name: !FindInMap ['PipelineDetails', !Ref WhichInstance, 'TemplateSource']
+                - Name: ValOutArt
               Configuration:
                 TemplateFilePath: !FindInMap ['PipelineDetails', !Ref WhichInstance, 'FileName']
                 ProductVersionName: !Ref WhichInstance
                 ProductType: CLOUD_FORMATION_TEMPLATE
                 ProductId: !Ref CatalogProduct
               RunOrder: '4'
-  Webhook:
-    Type: AWS::CodePipeline::Webhook
-    Properties:
-      Name: GitHub Hook 
-      Authentication: GITHUB_HMAC
-      AuthenticationConfiguration:
-        SecretToken: "{{resolve:secretsmanager:pipeline-github:secretstring:GitHubPersonalAccessToken}}"
-      Filters:
-      - JsonPath: "$.ref"
-        MatchEquals: refs/heads/ansible-vault
-      TargetAction: Source
-      TargetPipeline: !Ref CodePipeline
-      TargetPipelineVersion: !GetAtt CodePipeline.Version
+  # Webhook:
+  #   Type: AWS::CodePipeline::Webhook
+  #   Properties:
+  #     Name: GitHub Hook 
+  #     Authentication: GITHUB_HMAC
+  #     AuthenticationConfiguration:
+  #       SecretToken: "{{resolve:secretsmanager:pipeline-github:secretstring:GitHubPersonalAccessToken}}"
+  #     Filters:
+  #     - JsonPath: "$.ref"
+  #       MatchEquals: refs/heads/ansible-vault
+  #     TargetAction: Source
+  #     TargetPipeline: !Ref CodePipeline
+  #     TargetPipelineVersion: !GetAtt CodePipeline.Version
 
 
