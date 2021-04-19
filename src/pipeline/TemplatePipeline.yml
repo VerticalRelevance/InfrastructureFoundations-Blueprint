@@ -18,10 +18,12 @@ Mappings:
       TemplateSource: ec2Art
       S3CFTZIP: EC2_build/EC2_build.zip
       FileName: /src/main/cft/EC2CFT.yml 
+
     ElastiCache:
       TemplateSource: ecrArt
       S3CFTZIP: elasticache_build/ecr_file.zip
       FileName: /src/main/cft/ECR_template.yml 
+
     CommonVariables:
       Provider: S3
       FileBucket: hashicorptestingbucket
@@ -31,6 +33,7 @@ Mappings:
       ValZip: cft_validation/cft_val.zip
       ProjectName: cft-validation
       #/src/main/cft/ECR_template.yml  #join str.join(/src/main/cft/, userinput) %Y %m %d
+
 Resources:  
   # ArtifactStoreParameter:
   #   Description: The artifact store
@@ -58,7 +61,6 @@ Resources:
     Properties:
       PortfolioId: !Ref Portfolio
       ProductId: !Ref CatalogProduct
-      
 
   EndUsers:
     Type: AWS::ServiceCatalog::PortfolioPrincipalAssociation
@@ -76,6 +78,20 @@ Resources:
         Type: !FindInMap ['PipelineDetails','CommonVariables', 'Provider']
       RoleArn: !FindInMap ['PipelineDetails', 'CommonVariables','RoleArn']
       Stages:
+        # - Name: Source
+        #   Actions: 
+        #     - Name: SourceAction
+        #       ActionTypeId:
+        #         Category: Source
+        #         Owner: ThirdParty
+        #         Provider: GitHub
+        #         Version: 1
+        #       Configuration:
+        #         Owner: 
+        #         Repo:
+        #         Branch: ansible-vault
+        #         OAuthToken: "{{resolve:secretsmanager..."
+        #         PollforSourceChanges: false
         - Name: Source
           Actions:
             - Name: instanceSource
