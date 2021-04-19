@@ -87,10 +87,10 @@ Resources:
         #         Provider: GitHub
         #         Version: 1
         #       Configuration:
-        #         Owner: 
-        #         Repo:
+        #         Owner: jdsouza-vr
+        #         Repo: InfrastructureFoundations-RefArchitecture
         #         Branch: ansible-vault
-        #         OAuthToken: "{{resolve:secretsmanager..."
+        #         OAuthToken: "{{resolve:secretsmanager:pipeline-github:secretstring:GitHubPersonalAccessToken}}"
         #         PollforSourceChanges: false
         - Name: Source
           Actions:
@@ -153,7 +153,7 @@ Resources:
       Name: GitHub Hook 
       Authentication: GITHUB_HMAC
       AuthenticationConfiguration:
-        SecretToken: 
+        SecretToken: "{{resolve:secretsmanager:pipeline-github:secretstring:GitHubPersonalAccessToken}}"
       Filters:
       - JsonPath: "$.ref"
         MatchEquals: refs/heads/ansible-vault
