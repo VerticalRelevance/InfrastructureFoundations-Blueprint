@@ -47,6 +47,7 @@ Resources:
       Owner: Vertical Relevance
       ProvisioningArtifactParameters:
         - Name: CreateCatalogProduct
+          DisableTemplateValidation: true
           Info:
             LoadTemplateFromURL: https://hashicorptestingbucket.s3.amazonaws.com/pipeline/Empty.yml #make blank file
 
@@ -54,7 +55,7 @@ Resources:
     Type: AWS::ServiceCatalog::Portfolio
     Properties:
       Description: Portfolio to host instance products 
-      DisplayName: Created Instances 
+      DisplayName: !Ref WhichInstance
       ProviderName: Vertical Relevance
 
   ProductToPortfolio:
