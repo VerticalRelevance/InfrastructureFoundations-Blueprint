@@ -17,3 +17,9 @@ phases:
     - cfn-lint -b templates/ECR_template.yml templates/EC2CFT.yml #How do we reference a singular template that was passed in at a different stage? If its through artifacts, how do we ensure its the most recent artifact?
     - detect-secrets scan EC2CFT.yml
     - detect-secrets scan ECR_template.yml
+
+artifacts:
+  files: 
+    - '**/*'
+  name: valArtifact-$(date +%Y-%m-%d)
+  enable-symlinks: yes

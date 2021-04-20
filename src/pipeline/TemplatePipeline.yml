@@ -20,12 +20,12 @@ Mappings:
     EC2:
       TemplateSource: ec2Art
       S3CFTZIP: EC2_build/EC2_build.zip
-      FileName: /src/main/cft/EC2CFT.yml 
+      FileName: /templates/EC2CFT.yml 
 
     ElastiCache:
       TemplateSource: ecrArt
       S3CFTZIP: elasticache_build/ecr_file.zip
-      FileName: /src/main/cft/ECR_template.yml 
+      FileName: /templates/ECR_template.yml 
 
     CommonVariables:
       Provider: S3
@@ -38,38 +38,26 @@ Mappings:
       #/src/main/cft/ECR_template.yml  #join str.join(/src/main/cft/, userinput) %Y %m %d
 
 Resources:  
-  # ArtifactStoreParameter:
-  #   Description: The artifact store
-  #   Type: AWS::S3::Bucket
+  # ValidationCodeBuild:
+  #   Type: AWS::CodeBuild::Project
   #   Properties:
-  ValidationCodeBuild:
-    Type: AWS::CodeBuild::Project
-    Properties:
-      Name: ValCodeBuild
-      ServiceRole: !FindInMap ['CodeBuildDetails', 'ValidationVariables', 'SecurityRole']
-      Artifacts:
-        Type: S3
-        Path: CFT-Pipeline-test
-        Packaging: ZIP
-        NamespaceType: BUILD_ID
-        Name: ValOutArt.zip
-        Location: artifacttestingbucket
+  #     Name: ValCodeBuild
+  #     ServiceRole: !FindInMap ['CodeBuildDetails', 'ValidationVariables', 'SecurityRole']
+  #     Artifacts:
+  #       Type: S3
+  #       Path: CFT-Pipeline-test
+  #       Packaging: ZIP
+  #       NamespaceType: BUILD_ID
+  #       Name: ValOutArt.zip
+  #       Location: artifacttestingbucket
 
-      Environment:
-        Type: LINUX_CONTAINER
-        ComputeType: BUILD_GENERAL1_MEDIUM
-        Image: aws/codebuild/standard:1.0
-      Source:
-        Type: S3
-        Location: hashicorptestingbucket/cft_validation/cft_val.zip
-      
-      # For github source
-      # Location:
-      # Triggers:
-      #   Webhook: true
-      #   FilterGroups:
-      #     #come back to this
-
+      # Environment:
+      #   Type: LINUX_CONTAINER
+      #   ComputeType: BUILD_GENERAL1_MEDIUM
+      #   Image: aws/codebuild/standard:1.0
+      # Source:
+      #   Type: S3
+      #   Location: hashicorptestingbucket/cft_validation/cft_val.zip
 
   CatalogProduct:
     Type: AWS::ServiceCatalog::CloudFormationProduct
@@ -104,40 +92,40 @@ Resources:
   CodePipeline:
     Type: AWS::CodePipeline::Pipeline
     Properties:
-      Name: CFT-Pipeline-test
+      # Name: CFT-Pipeline-test
       ArtifactStore:
         Location: !FindInMap ['PipelineDetails', 'CommonVariables', 'ArtifactBucket']
         Type: !FindInMap ['PipelineDetails','CommonVariables', 'Provider']
       RoleArn: !FindInMap ['PipelineDetails', 'CommonVariables','RoleArn']
       Stages:
-        - Name: Source
-          Actions: 
-            - Name: SourceAction
-              ActionTypeId:
-                Category: Source
-                Owner: ThirdParty
-                Provider: GitHub
-                Version: 1
-              Configuration:
-                Owner: jdsouza-vr
-                Repo: InfrastructureFoundations-RefArchitecture
-                Branch: ansible-vault
-                OAuthToken: "{{resolve:secretsmanager:pipeline-github:secretstring:GitHubPersonalAccessToken}}"
-                PollforSourceChanges: false
         # - Name: Source
-        #   Actions:
-        #     - Name: valSource
+        #   Actions: 
+        #     - Name: SourceAction
         #       ActionTypeId:
         #         Category: Source
-        #         Owner: AWS
-        #         Provider: !FindInMap ['PipelineDetails','CommonVariables', 'Provider']
+        #         Owner: ThirdParty
+        #         Provider: GitHub
         #         Version: 1
-        #       OutputArtifacts:
-        #         - Name: !FindInMap ['PipelineDetails', 'CommonVariables', 'ValSource']
         #       Configuration:
-        #         S3Bucket: !FindInMap ['PipelineDetails', 'CommonVariables', 'FileBucket']
-        #         S3ObjectKey: !FindInMap ['PipelineDetails', 'CommonVariables', 'ValZip']
-        #       RunOrder: '2'
+        #         Owner: jdsouza-vr
+        #         Repo: InfrastructureFoundations-RefArchitecture
+        #         Branch: ansible-vault
+        #         OAuthToken: "{{resolve:secretsmanager:pipeline-github:secretstring:GitHubPersonalAccessToken}}"
+        #         PollforSourceChanges: false
+        - Name: Source
+          Actions:
+            - Name: valSource
+              ActionTypeId:
+                Category: Source
+                Owner: AWS
+                Provider: !FindInMap ['PipelineDetails','CommonVariables', 'Provider']
+                Version: 1
+              OutputArtifacts:
+                - Name: !FindInMap ['PipelineDetails', 'CommonVariables', 'ValSource']
+              Configuration:
+                S3Bucket: !FindInMap ['PipelineDetails', 'CommonVariables', 'FileBucket']
+                S3ObjectKey: !FindInMap ['PipelineDetails', 'CommonVariables', 'ValZip']
+              RunOrder: '2'
         - Name: Validation
           Actions:
             - Name: ValBuild 
@@ -149,7 +137,7 @@ Resources:
               InputArtifacts:
                 - Name: !FindInMap ['PipelineDetails', 'CommonVariables', 'ValSource'] 
               Configuration:
-                ProjectName: !Ref ValidationCodeBuild
+                ProjectName: ValCodeBuild #!Ref ValidationCodeBuild
                 #ProjectName: !FindInMap ['PipelineDetails', 'CommonVariables', 'ProjectName'] #!Ref projectname
               OutputArtifacts:
                 - Name: ValOutArt

@@ -1,0 +1,21 @@
+
+Resources:
+  ValidationCodeBuild:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Name: ValCodeBuild
+      ServiceRole: arn:aws:iam::396791034774:role/service-role/codebuild-ecr-test-service-role
+      Artifacts:
+        Type: S3
+        Path: CFT-Pipeline-test
+        Packaging: ZIP
+        NamespaceType: BUILD_ID
+        Name: ValOutArt.zip
+        Location: artifacttestingbucket
+      Environment:
+        Type: LINUX_CONTAINER
+        ComputeType: BUILD_GENERAL1_MEDIUM
+        Image: aws/codebuild/standard:1.0
+      Source:
+        Type: S3
+        Location: hashicorptestingbucket/cft_validation/cft_val.zip
