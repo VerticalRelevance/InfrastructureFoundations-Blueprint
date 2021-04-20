@@ -13,9 +13,11 @@ Parameters:
       - ElastiCache
       - EC2
 Mappings:
+
   CodeBuildDetails:
     ValidationVariables:
       SecurityRole: arn:aws:iam::396791034774:role/service-role/codebuild-ecr-test-service-role
+
   PipelineDetails:
     EC2:
       TemplateSource: ec2Art
@@ -34,46 +36,25 @@ Mappings:
       ArtifactBucket: artifacttestingbucket
       ValSource: ValArt
       ValZip: cft_validation/cft_val.zip
-      ProjectName: cft-validation
-      #/src/main/cft/ECR_template.yml  #join str.join(/src/main/cft/, userinput) %Y %m %d
+      ProjectName: ValCodeBuild
 
 Resources:  
-  # ValidationCodeBuild:
-  #   Type: AWS::CodeBuild::Project
-  #   Properties:
-  #     Name: ValCodeBuild
-  #     ServiceRole: !FindInMap ['CodeBuildDetails', 'ValidationVariables', 'SecurityRole']
-  #     Artifacts:
-  #       Type: S3
-  #       Path: CFT-Pipeline-test
-  #       Packaging: ZIP
-  #       NamespaceType: BUILD_ID
-  #       Name: ValOutArt.zip
-  #       Location: artifacttestingbucket
-
-      # Environment:
-      #   Type: LINUX_CONTAINER
-      #   ComputeType: BUILD_GENERAL1_MEDIUM
-      #   Image: aws/codebuild/standard:1.0
-      # Source:
-      #   Type: S3
-      #   Location: hashicorptestingbucket/cft_validation/cft_val.zip
 
   CatalogProduct:
     Type: AWS::ServiceCatalog::CloudFormationProduct
     Properties:
-      Name: ecr-test1
+      Name: !Ref WhichInstance
       Owner: Vertical Relevance
       ProvisioningArtifactParameters:
         - Name: CreateCatalogProduct
           Info:
-            LoadTemplateFromURL: https://hashicorptestingbucket.s3.amazonaws.com/elasticache_build/src/main/cft/ECR_template.yml #make blank file
+            LoadTemplateFromURL: https://hashicorptestingbucket.s3.amazonaws.com/pipeline/Empty.yml #make blank file
 
   Portfolio:
     Type: AWS::ServiceCatalog::Portfolio
     Properties:
       Description: Portfolio to host instance products 
-      DisplayName: Desired Instances 
+      DisplayName: Created Instances 
       ProviderName: Vertical Relevance
 
   ProductToPortfolio:
@@ -92,7 +73,6 @@ Resources:
   CodePipeline:
     Type: AWS::CodePipeline::Pipeline
     Properties:
-      # Name: CFT-Pipeline-test
       ArtifactStore:
         Location: !FindInMap ['PipelineDetails', 'CommonVariables', 'ArtifactBucket']
         Type: !FindInMap ['PipelineDetails','CommonVariables', 'Provider']
@@ -125,7 +105,7 @@ Resources:
               Configuration:
                 S3Bucket: !FindInMap ['PipelineDetails', 'CommonVariables', 'FileBucket']
                 S3ObjectKey: !FindInMap ['PipelineDetails', 'CommonVariables', 'ValZip']
-              RunOrder: '2'
+              
         - Name: Validation
           Actions:
             - Name: ValBuild 
@@ -137,13 +117,10 @@ Resources:
               InputArtifacts:
                 - Name: !FindInMap ['PipelineDetails', 'CommonVariables', 'ValSource'] 
               Configuration:
-                ProjectName: ValCodeBuild #!Ref ValidationCodeBuild
-                #ProjectName: !FindInMap ['PipelineDetails', 'CommonVariables', 'ProjectName'] #!Ref projectname
+                ProjectName: !FindInMap ['PipelineDetails', 'CommonVariables', 'ProjectName']
               OutputArtifacts:
                 - Name: ValOutArt
-
-              RunOrder: '3'
-        - Name: Catalog #Why is this completed before validation is completed?
+        - Name: Catalog 
           Actions:
             - Name: CatalogDeploy
               ActionTypeId:
@@ -158,7 +135,6 @@ Resources:
                 ProductVersionName: !Ref WhichInstance
                 ProductType: CLOUD_FORMATION_TEMPLATE
                 ProductId: !Ref CatalogProduct
-              RunOrder: '4'
   # Webhook:
   #   Type: AWS::CodePipeline::Webhook
   #   Properties:
