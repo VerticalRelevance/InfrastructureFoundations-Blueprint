@@ -81,7 +81,7 @@ Resources:
       Stages:
         # - Name: Source
         #   Actions: 
-        #     - Name: SourceAction
+        #     - Name: Source
         #       ActionTypeId:
         #         Category: Source
         #         Owner: ThirdParty
@@ -95,7 +95,7 @@ Resources:
         #         PollforSourceChanges: false
         - Name: Source
           Actions:
-            - Name: valSource
+            - Name: Source
               ActionTypeId:
                 Category: Source
                 Owner: AWS
@@ -136,18 +136,19 @@ Resources:
                 ProductVersionName: !Ref WhichInstance
                 ProductType: CLOUD_FORMATION_TEMPLATE
                 ProductId: !Ref CatalogProduct
-  # Webhook:
-  #   Type: AWS::CodePipeline::Webhook
-  #   Properties:
-  #     Name: GitHub Hook 
-  #     Authentication: GITHUB_HMAC
-  #     AuthenticationConfiguration:
-  #       SecretToken: "{{resolve:secretsmanager:pipeline-github:secretstring:GitHubPersonalAccessToken}}"
-  #     Filters:
-  #     - JsonPath: "$.ref"
-  #       MatchEquals: refs/heads/ansible-vault
-  #     TargetAction: Source
-  #     TargetPipeline: !Ref CodePipeline
-  #     TargetPipelineVersion: !GetAtt CodePipeline.Version
+  Webhook:
+    Type: AWS::CodePipeline::Webhook
+    Properties:
+      Name: GitHubHook 
+      Authentication: GITHUB_HMAC
+      AuthenticationConfiguration:
+        SecretToken: "{{resolve:secretsmanager:pipeline-github:SecretString:GitHubPersonalAccessToken}}"
+      Filters:
+      - JsonPath: "$.ref"
+        MatchEquals: refs/heads/{Branch}
+      TargetAction: Source
+      TargetPipeline: !Ref CodePipeline
+      TargetPipelineVersion: !GetAtt CodePipeline.Version
+      RegisterWithThirdParty: 'true'
 
 
