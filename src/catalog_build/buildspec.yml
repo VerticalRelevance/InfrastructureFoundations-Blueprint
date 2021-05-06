@@ -1,0 +1,11 @@
+version: 0.2
+  
+phases:
+  build:
+    commands:
+      # Navigates to catalog deployement folder and executes the script
+      - cd catalog_build/
+      - python3 catalog.py
+          
+
+ 

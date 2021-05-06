@@ -17,11 +17,6 @@ Parameters:
       - qa
     ConstraintDescription: Specify either dev, prod, qa
 
-Conditions:
-  IsProd: 
-    !Equals 
-      [ !Ref EnvironmentName, prod ]
-
 Mappings:
   CacheDetails: 
     CommonVariables:
@@ -77,6 +72,8 @@ Resources:
       Tags:
         - Key: Name
           Value: !Ref AWS::StackName
+        - Key: Version
+          Value: 0.1
 
  
 

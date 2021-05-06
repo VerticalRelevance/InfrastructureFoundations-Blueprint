@@ -15,7 +15,7 @@ Mappings:
   EC2Details:
     CommonDetails:
       VPC: vpc-0b8ad3ab815f525e8
-      InstanceType: m1.small
+      InstanceType: t2.medium
     dev:
       AMI: 'ami-0742b4e673072066f'
       AvailabilityZone: us-east-1a
@@ -42,32 +42,10 @@ Conditions:
         - !Ref Environment  
         - prod 
 Resources:
-  # myRoute:
-  #     Type: AWS::EC2::Route
-  #     Properties:
-  #       RouteTableId: !Ref myRouteTable
-  #       DestinationCidrBlock: 0.0.0.0/0
-  #       GatewayId: !Ref myInternetGateway
-  # myRouteTable:
-  #     Type: AWS::EC2::RouteTable
-  #     Properties:
-  #       VpcId: !FindInMap ['EC2Details', 'CommonDetails', 'VPC']
-        
-  #       Tags:
-  #       - Key: Environment
-  #         Value: !Ref Environment
-  # AttachGateway:
-  #   Type: AWS::EC2::VPCGatewayAttachment
-  #   Properties:
-  #     VpcId: !FindInMap ['EC2Details', 'CommonDetails', 'VPC']
-  #     InternetGatewayId: !Ref myInternetGateway
-  # myInternetGateway:
-  #     Type: AWS::EC2::InternetGateway
-  #     Properties:
-  #       Tags:
-  #       - Key: stack
-  #         Value: !Ref Environment
-
+  ElasticIP:
+    Type: AWS::EC2::EIP
+    Properties: 
+      InstanceId: !Ref MyInstance
   RootInstanceProfile:
     Type: AWS::IAM::InstanceProfile
     Properties:
@@ -114,10 +92,17 @@ Resources:
         Fn::Base64:
           !Sub |
             #!/bin/bash -ex
-            exec > >(tee /var/log/user-data.log|logger -t user-data -s 2>/dev/console) 2>&1
-            sudo yum install -y yum-utils
-            sudo yum-config-manager --add-repo https://rpm.releases.hashicorp.com/AmazonLinux/hashicorp.repo
-            sudo yum -y install vault
+            sudo -i
+            cd ..
+            mkdir userData
+            cd userData
+            amazon-linux-extras install ansible2 -y
+            mkdir HCVault
+            aws s3 cp --recursive s3://hashicorptestingbucket/ HCVault
+            cd HCVault/Ansible-vault/Ansible
+            pwd
+            ansible-playbook install_vault.yml
+            systemctl status vault
       Tags:
         -
           Key: Name
@@ -128,16 +113,14 @@ Resources:
         GroupDescription: Allow http to client host
         VpcId: !FindInMap ['EC2Details', 'CommonDetails', 'VPC']
         SecurityGroupIngress:
-        - IpProtocol: tcp
-          FromPort: 22
-          ToPort: 443
+        - IpProtocol: -1
           CidrIp: 0.0.0.0/0
         SecurityGroupEgress:
-        - IpProtocol: tcp
-          FromPort: 22
-          ToPort: 443
+        - IpProtocol: -1
           CidrIp: 0.0.0.0/0
         Tags:
         -
           Key: Name
           Value: !Join ['-', [SecurityGroup, !Ref AWS::Region, !Ref Environment]]
+        - Key: Version
+          Value: 0.1

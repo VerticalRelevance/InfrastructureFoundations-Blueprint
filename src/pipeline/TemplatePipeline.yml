@@ -1,0 +1,93 @@
+
+###  Creates a pipeline with source, validation and catalog deploy stages
+
+Parameters:
+
+  VPC:
+    Description: Please select the VPC used for the project
+    Type: AWS::EC2::VPC::Id
+  Subnet:
+    Description: Please select the subnet to be used for this configuration
+    Type: AWS::EC2::Subnet::Id
+Mappings:
+  PipelineDetails:
+    SourceStage:
+      RepositoryName: TestRepositoryInfraFoundations
+      BranchName: main
+    EC2:
+      TemplateSource: ec2Art
+      S3CFTZIP: EC2_build/EC2_build.zip
+      FileName: /templates/EC2CFT.yml 
+    
+    ElastiCache:
+      TemplateSource: ecrArt
+      S3CFTZIP: elasticache_build/ecr_file.zip
+      FileName: /templates/ECR_template.yml 
+
+    CommonVariables:
+      Provider: S3
+      FileBucket: hashicorptestingbucket
+      RoleArn: arn:aws:iam::396791034774:role/service-role/pipeline-testing
+      ArtifactBucket: artifacttestingbucket
+      ValProjectName: ValCodeBuild
+      CatalogProjectName: CatalogCodeBuild
+
+    ArtifactVariables:
+      ValidationBuild: ValOutArt
+      ValSource: ValArt
+
+Resources:  
+  CodePipeline:
+    Type: AWS::CodePipeline::Pipeline
+    Properties:
+      ArtifactStore:
+        Location: !FindInMap ['PipelineDetails', 'CommonVariables', 'ArtifactBucket']
+        Type: !FindInMap ['PipelineDetails','CommonVariables', 'Provider']
+      RoleArn: !FindInMap ['PipelineDetails', 'CommonVariables','RoleArn']
+      Stages:
+        - Name: Source
+          Actions: 
+            - Name: Source
+              ActionTypeId:
+                Category: Source
+                Owner: AWS
+                Provider: CodeCommit
+                Version: 1
+              Configuration:
+                RepositoryName: !FindInMap ['PipelineDetails', 'SourceStage', 'RepositoryName']
+                BranchName: !FindInMap ['PipelineDetails', 'SourceStage', 'BranchName']
+              OutputArtifacts:
+                - Name: !FindInMap ['PipelineDetails', 'ArtifactVariables', 'ValSource'] 
+     
+        - Name: Validation
+          Actions:
+            - Name: ValBuild 
+              ActionTypeId: 
+                Category: Build
+                Owner: AWS
+                Provider: CodeBuild
+                Version: 1
+              InputArtifacts:
+                - Name: !FindInMap ['PipelineDetails', 'ArtifactVariables', 'ValSource'] 
+              Configuration:
+                ProjectName: !FindInMap ['PipelineDetails', 'CommonVariables', 'ValProjectName']
+              OutputArtifacts:
+                - Name: !FindInMap ['PipelineDetails', 'ArtifactVariables', 'ValidationBuild']
+              RunOrder: 1
+
+            - Name: CatalogBuild
+              ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Provider: CodeBuild
+                Version: 1
+              InputArtifacts:
+                - Name: !FindInMap ['PipelineDetails', 'ArtifactVariables', 'ValSource'] 
+              Configuration:
+                ProjectName: !FindInMap ['PipelineDetails','CommonVariables','CatalogProjectName'] 
+              RunOrder: 2
+
+
+
+
+
