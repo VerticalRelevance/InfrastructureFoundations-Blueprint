@@ -1,0 +1,22 @@
+version: 0.2
+phases:
+  install:
+    runtime-versions:
+        python: 3.7
+    commands:
+    - python -m pip install --upgrade pip
+    - pip3 install cfn-lint --quiet
+    - pip3 install detect-secrets --quiet            
+    - pip3 install boto3 -U --quiet
+    - pip3 install botocore==1.15.49 --quiet
+    
+  build:
+    commands:
+      - cd Parsing/
+      - python3 parsing.py
+
+artifacts:
+  files: 
+    - '**/*'
+  name: valArtifact-$(date +%Y-%m-%d)
+  enable-symlinks: yes

@@ -1,0 +1,126 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: >-
+  Cloud Formation Template to allow for selection of various sizes of EC2
+  instances
+Parameters: 
+  Environment:
+    Description: Which account is the environment being creates
+    Type: String
+    Default: dev
+    AllowedValues:
+      - dev
+      - qa
+      - prod
+Mappings: 
+  EC2Details:
+    CommonDetails:
+      VPC: vpc-0b8ad3ab815f525e8
+      InstanceType: t2.medium
+    dev:
+      AMI: 'ami-0742b4e673072066f'
+      AvailabilityZone: us-east-1a
+      KeyName: JacobDevKey
+      SubnetId: subnet-0ec1bf2103401e3a5
+    prod:
+      AMI: 'ami-0742b4e673072066f'
+      AvailabilityZone: us-east-1b
+      KeyName: JacobProdKey
+      SubnetId: subnet-02cc41ade079189c2
+    qa:
+      AMI: 'ami-0742b4e673072066f'
+      AvailabilityZone: us-east-1c
+      KeyName: JacobQaKey
+      SubnetId: subnet-0f973744a50c4ae86
+      
+  RegionAndInstanceTypeToAMIID: 
+      us-east-1: 
+        dev: 'ami-0742b4e673072066f'
+        prod: 'ami-0742b4e673072066f'
+Conditions:
+  Prod: 
+    !Equals
+        - !Ref Environment  
+        - prod 
+Resources:
+  ElasticIP:
+    Type: AWS::EC2::EIP
+    Properties: 
+      InstanceId: !Ref MyInstance
+  RootInstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Path: "/"
+      Roles:
+      - !Ref RootRole
+  RootRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service:
+            - ec2.amazonaws.com
+          Action:
+          - sts:AssumeRole
+      Path: "/"
+  RolePolicies:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: root
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Effect: Allow
+          Action: "*"
+          Resource: "*"
+      Roles:
+      - !Ref RootRole
+  MyInstance:
+    Type: AWS::EC2::Instance
+    Properties:
+      IamInstanceProfile: !Ref RootInstanceProfile
+      KeyName: !FindInMap ['EC2Details', !Ref Environment, 'KeyName']
+      SubnetId: !FindInMap ['EC2Details', !Ref Environment, 'SubnetId']
+      SecurityGroupIds:
+      - !Ref 'InstanceSecurityGroup'
+      InstanceType: !FindInMap ['EC2Details', 'CommonDetails', 'InstanceType']
+      AvailabilityZone: !FindInMap ['EC2Details', !Ref Environment, 'AvailabilityZone']
+      ImageId: !FindInMap ['EC2Details', !Ref Environment, 'AMI']
+      UserData: 
+        Fn::Base64:
+          !Sub |
+            #!/bin/bash -ex
+            sudo -i
+            cd ..
+            mkdir userData
+            cd userData
+            amazon-linux-extras install ansible2 -y
+            mkdir HCVault
+            aws s3 cp --recursive s3://hashicorptestingbucket/ HCVault
+            cd HCVault/Ansible-vault/Ansible
+            pwd
+            ansible-playbook install_vault.yml
+            systemctl status vault
+      Tags:
+        -
+          Key: Name
+          Value: !Join ['-', [!Ref AWS::Region, Instance, 'jacob']]
+  InstanceSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+        GroupDescription: Allow http to client host
+        VpcId: !FindInMap ['EC2Details', 'CommonDetails', 'VPC']
+        SecurityGroupIngress:
+        - IpProtocol: -1
+          CidrIp: 0.0.0.0/0
+        SecurityGroupEgress:
+        - IpProtocol: -1
+          CidrIp: 0.0.0.0/0
+        Tags:
+        -
+          Key: Name
+          Value: !Join ['-', [SecurityGroup, !Ref AWS::Region, !Ref Environment]]
+        - Key: Version
+          Value: 0.1

@@ -1,0 +1,29 @@
+Parameters:
+  WhichInstance: 
+    Type: String
+  CatalogPortfolio: 
+    Type: String
+  Version:
+    Type: String
+Resources:
+  #Creates new/Updates Catalog product
+  CatalogProduct:
+      Type: AWS::ServiceCatalog::CloudFormationProduct
+      Properties:
+        #Sets Service Catalog name to the name of Proudct
+        Name: !Ref WhichInstance 
+        Owner: Vertical Relevance
+        ProvisioningArtifactParameters:
+          - DisableTemplateValidation: true
+            Name: !Ref Version
+            #Finds template of product from source in s3
+            Info:
+              LoadTemplateFromURL: !Sub "https://hashicorptestingbucket.s3.amazonaws.com/Parsing/ServiceCatalog/${WhichInstance}/${WhichInstance}_template.yml"
+  # Adds new/updated product to Portfolio
+  ProductToPortfolio:
+    Type: AWS::ServiceCatalog::PortfolioProductAssociation
+    Properties:
+      PortfolioId: !Ref CatalogPortfolio 
+      ProductId: !Ref CatalogProduct
+
+
