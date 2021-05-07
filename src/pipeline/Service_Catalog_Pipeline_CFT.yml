@@ -3,13 +3,17 @@
 
 Parameters:
 
+#Describes the environment for the project
   VPC:
     Description: Please select the VPC used for the project
     Type: AWS::EC2::VPC::Id
   Subnet:
     Description: Please select the subnet to be used for this configuration
     Type: AWS::EC2::Subnet::Id
+
+
 Mappings:
+  #These mappings allow for simple substitution of various environment parameters
   PipelineDetails:
     SourceStage:
       RepositoryName: TestRepositoryInfraFoundations
@@ -23,7 +27,7 @@ Mappings:
       TemplateSource: ecrArt
       S3CFTZIP: elasticache_build/ecr_file.zip
       FileName: /templates/ECR_template.yml 
-
+  
     CommonVariables:
       Provider: S3
       FileBucket: hashicorptestingbucket
@@ -45,6 +49,7 @@ Resources:
         Type: !FindInMap ['PipelineDetails','CommonVariables', 'Provider']
       RoleArn: !FindInMap ['PipelineDetails', 'CommonVariables','RoleArn']
       Stages:
+        #Sources the template(s) from CodeCommit
         - Name: Source
           Actions: 
             - Name: Source
@@ -58,9 +63,10 @@ Resources:
                 BranchName: !FindInMap ['PipelineDetails', 'SourceStage', 'BranchName']
               OutputArtifacts:
                 - Name: !FindInMap ['PipelineDetails', 'ArtifactVariables', 'ValSource'] 
-     
+        #Validates the template(s) and builds the template(s) so long as validation is passed
         - Name: Validation
           Actions:
+            #Validation Codebuild
             - Name: ValBuild 
               ActionTypeId: 
                 Category: Build
@@ -74,7 +80,7 @@ Resources:
               OutputArtifacts:
                 - Name: !FindInMap ['PipelineDetails', 'ArtifactVariables', 'ValidationBuild']
               RunOrder: 1
-
+            #Catalog deployment
             - Name: CatalogBuild
               ActionTypeId:
                 Category: Build

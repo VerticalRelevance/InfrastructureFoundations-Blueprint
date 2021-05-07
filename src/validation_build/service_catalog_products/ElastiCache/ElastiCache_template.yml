@@ -19,6 +19,7 @@ Parameters:
 
 Mappings:
   CacheDetails: 
+  #These mappings provide base configuration for the cluster that can be easily managed for future changes
     CommonVariables:
       CacheEngine: redis
       AutoMinorVersionUpdate: true
@@ -40,8 +41,9 @@ Mappings:
       Subnet2: subnet-0363590125579aea8
 
 Resources:
+  #Creates instance Security group inside vpc
   SecurityGroup:
-    Type: AWS::EC2::SecurityGroup
+    Type: AWS::ElastiCache::SecurityGroup
     Properties:
       GroupDescription: ElastiCache Security Group
       VpcId: !FindInMap ['CacheDetails', 'CommonVariables', 'VPCID']
@@ -50,6 +52,7 @@ Resources:
           Key: Name
           Value: !Sub "${AWS::StackName}-ElastiCacheSecurityGroup"
 
+  #Creates Cache Subnet Group
   SubnetGroup:
     Type: AWS::ElastiCache::SubnetGroup
     Properties:
@@ -58,6 +61,7 @@ Resources:
         - !FindInMap [!Ref EnvironmentName, !Ref AWS::Region, 'Subnet1']
         - !FindInMap [!Ref EnvironmentName, !Ref AWS::Region, 'Subnet2']
 
+  # Creates ElastiCache Cluster with Redis
   ElastiCacheCluster:
     Type: AWS::ElastiCache::CacheCluster
     Properties:

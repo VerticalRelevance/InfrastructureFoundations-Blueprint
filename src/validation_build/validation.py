@@ -8,8 +8,6 @@ import boto3
 #     If the product exists on Service Catalog, the function adds the path and new version of the template to be tested and then updated
 
 #     The validation function executes cfn-lint and detect-secrets testing on the requested templates
-
-
 def path_creation():
 
     #Creates required boto3 clients
@@ -21,7 +19,7 @@ def path_creation():
     to_update={'paths':[],'products':[],'versions':[]}
 
     # a list of the products
-    folders=os.listdir('ServiceCatalog')
+    folders=os.listdir('service_catalog_products')
 
     #counter to iterate through products
     x=0
@@ -33,7 +31,7 @@ def path_creation():
         if not t.startswith('.'):
 
             #Reads in information from product datafile
-            f=open(f'ServiceCatalog/{t}/datafile.json')
+            f=open(f'service_catalog_products/{t}/datafile.json')
             datafile=json.load(f)
 
             #Determines whether existing product needs to be updated
@@ -45,7 +43,7 @@ def path_creation():
                 #Adds new version information to be tested
                 if datafile['Version'] != version:   
                     print("this is an old product")
-                    path=f'ServiceCatalog/{t}/{t}_template.yml' 
+                    path=f'service_catalog_products/{t}/{t}_template.yml' 
                     to_update['paths'].append(path)  # add path to template for testing
                     to_update['versions'].append(str(datafile['Version']))  # add version for updating the product
                     to_update['products'].append(f"{t}")
@@ -57,11 +55,11 @@ def path_creation():
             if datafile['RequestType']=='New':  
                 print("this is a new product")
                 #Adds new product information to be tested and created
-                path=f'ServiceCatalog/{t}/{t}_template.yml'
+                path=f'service_catalog_products/{t}/{t}_template.yml'
                 new_products['paths'].append(path)  #add path to template for testing
                 new_products['products'].append(f"{t}")  #add name of product for creation
                 datafile['RequestType']='Old'
-                with open(f'ServiceCatalog/{t}/datafile.json', 'w') as outfile:
+                with open(f'service_catalog_products/{t}/datafile.json', 'w') as outfile:
                     json.dump(datafile, outfile)
     
     #Puts New product information in Parameter Store

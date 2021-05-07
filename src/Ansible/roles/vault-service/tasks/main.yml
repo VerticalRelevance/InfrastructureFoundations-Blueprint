@@ -1,29 +1,34 @@
+# Installs Apache
 - name: install the latest version of Apache
   yum:
     name: httpd
     state: latest
-# line 7 defines package module
-# line 9 defines what to install
+# Installs the latest verision of yum-utils(yum utility)
 - name: install the latest version of yum-utils
   yum: 
     name: yum-utils
     state: latest
+# Runs a command that adds the hashicorp linux repository to the instance
 - name: Run a command that adds the HC linux repository
   shell: sudo yum-config-manager --add-repo https://rpm.releases.hashicorp.com/AmazonLinux/hashicorp.repo
   args:
     executable: /bin/bash
+# Installs the latest version of Hashicorp Vault
 - name: install the latest version of Vault
   yum: 
     name: vault
     state: latest
+# Copies the hcl file to its proper location
 - name: Copy the hcl file to the proper location
   copy:
     src: roles/vault-service/tasks/vault.hcl
     dest: /etc/
+# Restarts the vault server
 - name: restart vault server
   shell: systemctl restart vault
   args:
     executable: /bin/bash
+# Checks to see if vault has been installed correctly
 - name: check status
   shell: systemctl status vault
   args:

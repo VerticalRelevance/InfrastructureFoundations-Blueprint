@@ -1,4 +1,5 @@
 ---
+#Installs vault using vault service role
 - hosts: localhost
   become: true
   become_method: sudo

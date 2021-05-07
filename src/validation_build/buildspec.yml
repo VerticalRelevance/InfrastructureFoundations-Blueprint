@@ -3,18 +3,19 @@ phases:
   install:
     runtime-versions:
         python: 3.7
+    #Installs the various CLI programs as well as the validation and linting programs
     commands:
     - python -m pip install --upgrade pip
     - pip3 install cfn-lint --quiet
     - pip3 install detect-secrets --quiet            
     - pip3 install boto3 -U --quiet
     - pip3 install botocore==1.15.49 --quiet
-    
+  #Navigates to specific directory and executes the python script 
   build:
     commands:
-      - cd Parsing/
-      - python3 parsing.py
-
+      - cd validation_build/
+      - python3 validation.py
+#Artifacts to be used down the pipeline
 artifacts:
   files: 
     - '**/*'

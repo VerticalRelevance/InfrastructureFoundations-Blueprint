@@ -13,9 +13,11 @@ Parameters:
       - prod
 Mappings: 
   EC2Details:
+    #Details shared across environments
     CommonDetails:
       VPC: vpc-0b8ad3ab815f525e8
       InstanceType: t2.medium
+    #Depending on which environment is chosen, different AZ's and subnets are used to help keep the environments seperate
     dev:
       AMI: 'ami-0742b4e673072066f'
       AvailabilityZone: us-east-1a
@@ -31,27 +33,21 @@ Mappings:
       AvailabilityZone: us-east-1c
       KeyName: JacobQaKey
       SubnetId: subnet-0f973744a50c4ae86
-      
-  RegionAndInstanceTypeToAMIID: 
-      us-east-1: 
-        dev: 'ami-0742b4e673072066f'
-        prod: 'ami-0742b4e673072066f'
-Conditions:
-  Prod: 
-    !Equals
-        - !Ref Environment  
-        - prod 
+
 Resources:
+  #Elastic IP that attaches the instance to the Internet
   ElasticIP:
     Type: AWS::EC2::EIP
     Properties: 
       InstanceId: !Ref MyInstance
+  #Root profile that gives permissions, see RootRole
   RootInstanceProfile:
     Type: AWS::IAM::InstanceProfile
     Properties:
       Path: "/"
       Roles:
       - !Ref RootRole
+  #Security Role that describes the service
   RootRole:
     Type: AWS::IAM::Role
     Properties:
@@ -65,6 +61,7 @@ Resources:
           Action:
           - sts:AssumeRole
       Path: "/"
+  #Defines the permissions
   RolePolicies:
     Type: AWS::IAM::Policy
     Properties:
@@ -77,6 +74,7 @@ Resources:
           Resource: "*"
       Roles:
       - !Ref RootRole
+  #The actual instance to be created
   MyInstance:
     Type: AWS::EC2::Instance
     Properties:
@@ -88,6 +86,7 @@ Resources:
       InstanceType: !FindInMap ['EC2Details', 'CommonDetails', 'InstanceType']
       AvailabilityZone: !FindInMap ['EC2Details', !Ref Environment, 'AvailabilityZone']
       ImageId: !FindInMap ['EC2Details', !Ref Environment, 'AMI']
+      #Installs hashicorp vault via user data and an ansible playbook
       UserData: 
         Fn::Base64:
           !Sub |
@@ -107,6 +106,7 @@ Resources:
         -
           Key: Name
           Value: !Join ['-', [!Ref AWS::Region, Instance, 'jacob']]
+  #Security group that is attached to the instance
   InstanceSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:

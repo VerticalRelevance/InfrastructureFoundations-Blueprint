@@ -1,3 +1,5 @@
+#WhichInstance and Version are brought from Parameter Store
+#Portfolio is brought as an environment variable from the codebuild project
 Parameters:
   WhichInstance: 
     Type: String
@@ -5,6 +7,7 @@ Parameters:
     Type: String
   Version:
     Type: String
+    
 Resources:
   #Creates new/Updates Catalog product
   CatalogProduct:
@@ -18,7 +21,8 @@ Resources:
             Name: !Ref Version
             #Finds template of product from source in s3
             Info:
-              LoadTemplateFromURL: !Sub "https://hashicorptestingbucket.s3.amazonaws.com/Parsing/ServiceCatalog/${WhichInstance}/${WhichInstance}_template.yml"
+              LoadTemplateFromURL: !Sub "https://hashicorptestingbucket.s3.amazonaws.com/validation_build/service_catalog_products/${WhichInstance}/${WhichInstance}_template.yml"
+
   # Adds new/updated product to Portfolio
   ProductToPortfolio:
     Type: AWS::ServiceCatalog::PortfolioProductAssociation

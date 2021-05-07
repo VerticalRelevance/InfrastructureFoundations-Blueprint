@@ -20,7 +20,7 @@ Resources:
       Source:
         Type: S3
         Location: hashicorptestingbucket/Source.zip
-        BuildSpec: Parsing/buildspec.yml
+        BuildSpec: validation_build/buildspec.yml
 
   
   #Creates the deployment to Service Catalog
@@ -40,6 +40,7 @@ Resources:
         Type: LINUX_CONTAINER
         ComputeType: BUILD_GENERAL1_MEDIUM
         Image: aws/codebuild/standard:1.0
+        #creates environment variable to be used in the catalog deployment
         EnvironmentVariables:
           - Name: CATALOG_PORTFOLIO
             Type: PLAINTEXT
@@ -47,7 +48,8 @@ Resources:
       Source:
         Type: S3 
         Location: hashicorptestingbucket/Source.zip
-        BuildSpec: catalog_build/buildspec.yml
+        BuildSpec: service_catalog_build/buildspec.yml
+
 #Creates a Service Catalog Portfolio for products to be stored in
   CatalogPortfolio:
     Type: AWS::ServiceCatalog::Portfolio
@@ -55,6 +57,7 @@ Resources:
       Description: Portfolio to host instance products 
       DisplayName: AWS Resources
       ProviderName: Vertical Relevance
+
 #Creates association of desired users to have access to the products
   EndUsers:
       Type: AWS::ServiceCatalog::PortfolioPrincipalAssociation
