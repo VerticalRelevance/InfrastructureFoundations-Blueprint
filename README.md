@@ -8,7 +8,15 @@ This program takes in an AWS CloudFormation template and passes it through a ser
 In order for the pipeline to execute, the template must be named according to the following rules. The name of the folder should be the name of the product, and the name of the template should be 'nameofproduct'_template.yml, where 'nameofproduct' is the name of the product you are trying to add. The program requires a folder under the Parsing/ServiceCatalog directory that is named after the product that includes a datafile.json with RequestType and Version variables. For new products, the RequestType should be set to New. For existing products, when looking to update, the version in the datafile must be updated. The resulting file structure should look like:  
 **Parsing/ServiceCatalog/${*WhichInstance*}/${*WhichInstance*}_template.yml.**
 
+## **Installation** ##
+1. After cloning repository on local machine, navigate to src/pipeline/ and launch the “Service_Catalog_Pipeline_CFT.yml” cloudformation template in AWS CloudFormation or from the AWS CLI. Then launch the “Pipeline_CodeBuilds.yml” cloudformation template.
+2. Set up a CodeCommit repository with the same file structure as found on GitHub.
+3. Then navigate to validation_build/service_catalog_products/ and add any products that need to be created/updated with the correct RequestType and version.  Pushing these changes to CodeCommit will trigger the pipeline.
+4. After the pipeline has created/updated the product(s), navigate to Service Catalog on the AWS console, find the desired product on the Products tab, select the product, and click “Launch Product” with the custom parameters.
+
+
 ## **Instructions for adding/updating a product**
+
 ### For a new product:
 1. Create a folder containing the template and datafile.json for the new product, with the folder name and template file name matching the rules in the naming convention. Below is what the datafile.json document should look like/contain. The only time RequestType is set to new is when you are creating a new product. If you are trying to update a product, the datafile.json will have changed the value from New to Old and you will not need to change that value. See the instructions for updating a product for more information.
 ```json
