@@ -20,9 +20,9 @@ This will create a new directory called nameOfDirectory in the location you have
 git clone https://github.com/VerticalRelevance/InfrastructureFoundations-RefArchitecture.git
 ```
 4. After cloning the repository on to your local machine, go to your AWS page and navigate to CloudFormation. Select create new stack, and go to src/pipeline/ and select the “Service_Catalog_Pipeline_CFT.yml” cloudformation template file. Repeat this process again, but this time launch the “Pipeline_CodeBuilds.yml” cloudformation template.
-![CloudFormationScreengrab](src/Images/CloudFormationScreengrab)
-![CreateStack](src/Images/CreateStack)
-![CreateStack2](src/Images/CreateStack2)
+![CloudFormationScreengrab](src/Images/CloudFormationScreengrab.png)
+![CreateStack](src/Images/CreateStack.png)
+![CreateStack2](src/Images/CreateStack2.png)
 5. Set up a CodeCommit repository with the same file structure as found on GitHub.
 6. Then navigate to validation_build/service_catalog_products/ and add any products that need to be created/updated with the correct RequestType and version.  Pushing these changes to CodeCommit will trigger the pipeline.
 7. After the pipeline has created/updated the product(s), navigate to Service Catalog on the AWS console, find the desired product on the Products tab, select the product, and click “Launch Product” with the custom parameters.
