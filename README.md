@@ -23,9 +23,21 @@ git clone https://github.com/VerticalRelevance/InfrastructureFoundations-RefArch
 ![CloudFormationScreengrab](src/Images/CloudFormationScreengrab.png)
 ![CreateStack](src/Images/CreateStack.png)
 ![CreateStack2](src/Images/CreateStack2.png)
-5. Set up a CodeCommit repository with the same file structure as found on GitHub.
-6. Then navigate to validation_build/service_catalog_products/ and add any products that need to be created/updated with the correct RequestType and version.  Pushing these changes to CodeCommit will trigger the pipeline.
+5. Set up a CodeCommit repository with the same file structure as found on GitHub. A simple way to do this is to make another clone of the directory, but this time add the name CodeCommit to the end of the mkdir statement:
+```
+mkdir nameOfDirectoryCodeCommit
+```
+6. Once the repository is cloned, do a git push --all to the URL of the CodeCommit repository we just set up. The command will look something like this:
+```
+git push https://git-codecommit.us-east-1.amazonaws.com/v1/repos/ExampleRepository --all
+```
+Replace the HTTPS URL with your own CodeCommits HTTPS URL.
+6. Inside of the CodeCommit repository, navigate to validation_build/service_catalog_products/ and add any products that need to be created/updated with the correct RequestType and version. Making these changes will trigger the pipeline to start with either creating or updating a product.
+![CodeCommit](src/Images/CodeCommit.png)
+![CodeCommit2](src/Images/CodeCommit2.png)
 7. After the pipeline has created/updated the product(s), navigate to Service Catalog on the AWS console, find the desired product on the Products tab, select the product, and click “Launch Product” with the custom parameters.
+![ServiceCatalog](src/Images/ServiceCatalog.png)
+![ServiceCatalog2](src/Images/ServiceCatalog2.png)
 
 
 ## **Instructions for adding/updating a product**
