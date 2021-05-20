@@ -9,7 +9,7 @@ In order for the pipeline to execute, the template must be named according to th
 **Parsing/ServiceCatalog/${*WhichInstance*}/${*WhichInstance*}_template.yml.**
 
 ## **Installation** ##
-1. Ensure that your CLI(command line interface) is running in either bash or another linux based operating command structure. For Mac users, this is how the CLI works off the bat. For Windows users, there are many guides online that can walk you through the setup step by step, such as here[https://www.howtogeek.com/249966/how-to-install-and-use-the-linux-bash-shell-on-windows-10/].
+1. Ensure that your CLI(command line interface) is running in either bash or another linux based operating command structure. For Mac users, this is how the CLI works off the bat. For Windows users, there are many guides online that can walk you through the setup step by step, such as [here](https://www.howtogeek.com/249966/how-to-install-and-use-the-linux-bash-shell-on-windows-10/).
 2. Once you have ensured that the CLI is set up properly, make an empty directory in the location you would like the repository to reside in. To do this, simply go into the CLI and type the following:
 ```
 mkdir nameOfDirectory
@@ -19,7 +19,10 @@ This will create a new directory called nameOfDirectory in the location you have
 ```
 git clone https://github.com/VerticalRelevance/InfrastructureFoundations-RefArchitecture.git
 ```
-4. After cloning repository on local machine, navigate to src/pipeline/ and launch the “Service_Catalog_Pipeline_CFT.yml” cloudformation template in AWS CloudFormation or from the AWS CLI. Then launch the “Pipeline_CodeBuilds.yml” cloudformation template.
+4. After cloning the repository on to your local machine, go to your AWS page and navigate to CloudFormation. Select create new stack, and go to src/pipeline/ and select the “Service_Catalog_Pipeline_CFT.yml” cloudformation template file. Repeat this process again, but this time launch the “Pipeline_CodeBuilds.yml” cloudformation template.
+![CloudFormationScreengrab](src/Images/CloudFormationScreengrab)
+![CreateStack](src/Images/CreateStack)
+![CreateStack2](src/Images/CreateStack2)
 5. Set up a CodeCommit repository with the same file structure as found on GitHub.
 6. Then navigate to validation_build/service_catalog_products/ and add any products that need to be created/updated with the correct RequestType and version.  Pushing these changes to CodeCommit will trigger the pipeline.
 7. After the pipeline has created/updated the product(s), navigate to Service Catalog on the AWS console, find the desired product on the Products tab, select the product, and click “Launch Product” with the custom parameters.
