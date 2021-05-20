@@ -33,6 +33,7 @@ git push https://git-codecommit.us-east-1.amazonaws.com/v1/repos/ExampleReposito
 ```
 Replace the HTTPS URL with your own CodeCommits HTTPS URL.
 6. Inside of the CodeCommit repository, navigate to validation_build/service_catalog_products/ and add any products that need to be created/updated with the correct RequestType and version. Making these changes will trigger the pipeline to start with either creating or updating a product.
+ 
 ![CodeCommit](src/Images/CodeCommit.png)
 ![CodeCommit2](src/Images/CodeCommit2.png)
 7. After the pipeline has created/updated the product(s), navigate to Service Catalog on the AWS console, find the desired product on the Products tab, select the product, and click “Launch Product” with the custom parameters.
