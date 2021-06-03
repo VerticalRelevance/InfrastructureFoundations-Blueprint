@@ -50,7 +50,7 @@ Replace the HTTPS URL with your own CodeCommits HTTPS URL.
 ```
 2. Upload said folder to the Parsing/ServiceCatalog directory. Make sure that the spelling is the same throughout the project. To do this via the CLI, the command should look something like this:
 ```
-  put-file --repository-name <NameOfRepository> --branch-name <NameOfBranch> --file-content <value> --file-path <value>
+aws codecommit put-file --repository-name <NameOfRepository> --branch-name <NameOfBranch> --file-content <value> --file-path <value>
 ```
 3. Once the pipeline has completed validating the template, it will begin its deployment to Service Catalog. From this point on, follow the common instructions below.
 
@@ -62,7 +62,7 @@ Replace the HTTPS URL with your own CodeCommits HTTPS URL.
 
 2. Upload the updated template and datafile.json to the folder inside of the Parsing/ServiceCatalog directory. Make sure that the Version has been changed, otherwise the pipeline will not deploy the updated template. To do this via the CLI, the command should look something like this:
 ```
-  put-file --repository-name <NameOfRepository> --branch-name <NameOfBranch> --file-content <value> --file-path <PathToFile>
+aws codecommit put-file --repository-name <NameOfRepository> --branch-name <NameOfBranch> --file-content <value> --file-path <PathToFile>
 ```
 3. Follow the common instructions below.
 
@@ -78,6 +78,6 @@ Replace the HTTPS URL with your own CodeCommits HTTPS URL.
                 - datafile.json
 To do this via CLI, the command should look something like this:
 ```
-aws s3 mv source.zip s3://bucket-name
+aws s3 mv source.zip s3://bucket-name/path-to-location
 ```
 5. Once completed, push the changes in the repository on your local machine to the CodeCommit repository on AWS. This will trigger the pipeline, either creating the new product or updating an existing one. 
