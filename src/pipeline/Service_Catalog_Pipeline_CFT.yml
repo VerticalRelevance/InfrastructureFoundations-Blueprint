@@ -21,7 +21,7 @@ Mappings:
   PipelineDetails:
     SourceStage:
       RepositoryName: TestRepositoryInfraFoundations
-      BranchName: main
+      BranchName: automation-refactor
     EC2:
       TemplateSource: ec2Art
       S3CFTZIP: EC2_build/EC2_build.zip
