@@ -11,13 +11,21 @@ Parameters:
       - dev
       - qa
       - prod
+  SourceBucketName:
+      Description: 'S3 BucketName for Python functions. For example: infrafoundationstest'
+      Type: String
+      Default: "infrafoundationstest"
+  VPC:
+    Description: Please select the VPC used for the project
+    Type: AWS::EC2::VPC::Id
+    Default: vpc-0b8ad3ab815f525e8
+
 Mappings: 
   EC2Details:
     #Details shared across environments
     CommonDetails:
-      VPC: vpc-0b8ad3ab815f525e8
       InstanceType: t2.medium
-    #Depending on which environment is chosen, different AZ's and subnets are used to help keep the environments seperate
+    #Depending on which environment is chosen, different AZ's and subnets are used to help keep the environments separate
     dev:
       AMI: 'ami-0742b4e673072066f'
       AvailabilityZone: us-east-1a
@@ -97,8 +105,8 @@ Resources:
             cd userData
             amazon-linux-extras install ansible2 -y
             mkdir HCVault
-            aws s3 cp --recursive s3://hashicorptestingbucket/ HCVault
-            cd HCVault/Ansible-vault/Ansible
+            aws s3 cp --recursive s3://${SourceBucketName}/ HCVault
+            cd HCVault/Ansible
             pwd
             ansible-playbook install_vault.yml
             systemctl status vault
@@ -111,7 +119,7 @@ Resources:
     Type: AWS::EC2::SecurityGroup
     Properties:
         GroupDescription: Allow http to client host
-        VpcId: !FindInMap ['EC2Details', 'CommonDetails', 'VPC']
+        VpcId: !Ref VPC
         SecurityGroupIngress:
         - IpProtocol: -1
           CidrIp: 0.0.0.0/0

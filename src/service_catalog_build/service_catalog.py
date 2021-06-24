@@ -18,16 +18,16 @@ def Version():
     return versions
 
 #Creates a new product on Service Catalog
-def CreateProduct(products, version=0.1, portfolio=os.environ['CATALOG_PORTFOLIO']):
+def CreateProduct(products, version=0.1, portfolio=os.environ['CATALOG_PORTFOLIO'], source_bucket_name=os.environ['SOURCE_BUCKET_NAME']):
     for product in products:
         os.system(f"echo creating {product} product")
-        os.system(f"aws cloudformation create-stack --stack-name {product} --template-body file://service_catalog_cft.yml --parameters ParameterKey=WhichInstance,ParameterValue={product} ParameterKey=CatalogPortfolio,ParameterValue={portfolio} ParameterKey=Version,ParameterValue={version}")
+        os.system(f"aws cloudformation create-stack --stack-name {product} --template-body file://service_catalog_cft.yml --parameters ParameterKey=WhichInstance,ParameterValue={product} ParameterKey=CatalogPortfolio,ParameterValue={portfolio} ParameterKey=SourceBucketName,ParameterValue={source_bucket_name} ParameterKey=Version,ParameterValue={version}")
 
 #Updates and existing product on Service Catalog
-def UpdateProduct(products, versions=Version(), portfolio=os.environ['CATALOG_PORTFOLIO']): 
+def UpdateProduct(products, versions=Version(), portfolio=os.environ['CATALOG_PORTFOLIO'], source_bucket_name=os.environ['SOURCE_BUCKET_NAME']): 
     for idx,product in enumerate(products):
         os.system(f"echo updating {product} product")
-        os.system(f"aws cloudformation update-stack --stack-name {product} --template-body file://service_catalog_cft.yml --parameters ParameterKey=WhichInstance,ParameterValue={product} ParameterKey=CatalogPortfolio,ParameterValue={portfolio} ParameterKey=Version,ParameterValue={versions[idx]}")
+        os.system(f"aws cloudformation update-stack --stack-name {product} --template-body file://service_catalog_cft.yml --parameters ParameterKey=WhichInstance,ParameterValue={product} ParameterKey=CatalogPortfolio,ParameterValue={portfolio} ParameterKey=SourceBucketName,ParameterValue={source_bucket_name} ParameterKey=Version,ParameterValue={versions[idx]}")
 
 if __name__ == '__main__':
     #collects version numbers for products that need to be updated

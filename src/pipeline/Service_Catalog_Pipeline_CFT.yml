@@ -1,16 +1,20 @@
-
+AWSTemplateFormatVersion: '2010-09-09'
 ###  Creates a pipeline with source, validation and catalog deploy stages
 
 Parameters:
-
 #Describes the environment for the project
-  VPC:
-    Description: Please select the VPC used for the project
-    Type: AWS::EC2::VPC::Id
-  Subnet:
-    Description: Please select the subnet to be used for this configuration
-    Type: AWS::EC2::Subnet::Id
-
+  Environment:
+    Description: Which account is the environment being creates
+    Type: String
+    Default: dev
+    AllowedValues:
+      - dev
+      - qa
+      - prod
+  ArtifactBucketName:
+    Description: 'S3 BucketName for CodeBuild Artifacts. For example: pipelineartifactsource'
+    Type: String
+    Default: "pipelineartifactsource"
 
 Mappings:
   #These mappings allow for simple substitution of various environment parameters
@@ -29,25 +33,130 @@ Mappings:
       FileName: /templates/ECR_template.yml 
   
     CommonVariables:
-      Provider: S3
-      FileBucket: hashicorptestingbucket
-      RoleArn: arn:aws:iam::396791034774:role/service-role/pipeline-testing
-      ArtifactBucket: artifacttestingbucket
-      ValProjectName: ValCodeBuild
-      CatalogProjectName: CatalogCodeBuild
+      ValProjectName: InfraFoundationsValCodeBuild
+      CatalogProjectName: InfraFoundationsCatalogCodeBuild
 
     ArtifactVariables:
       ValidationBuild: ValOutArt
       ValSource: ValArt
 
-Resources:  
+Resources: 
+  ArtifactBucket:
+    Type: AWS::S3::Bucket
+    DeletionPolicy: Retain
+    Properties:
+      BucketName: !Ref ArtifactBucketName
+
+  PipelineFoundationsRepo:
+    Type: AWS::CodeCommit::Repository
+    Properties:
+      RepositoryName: !FindInMap ['PipelineDetails', 'SourceStage', 'RepositoryName']
+      RepositoryDescription: The codecommit repository for the Pipeline Foundations pipeline
+
+  CodePipelineRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - codepipeline.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+      Path: /service-role/
+      Policies:
+        - PolicyName: !Join ['', [PipelineFoundationsCodePipeline, !Ref Environment]]
+          PolicyDocument: 
+            Version: '2012-10-17'
+            Statement:
+              - Action:
+                  - iam:PassRole
+                Resource: "*"
+                Effect: Allow
+                Condition:
+                  StringEqualsIfExists:
+                    iam:PassedToService:
+                    - cloudformation.amazonaws.com
+              - Action:
+                  - codecommit:CancelUploadArchive
+                  - codecommit:GetBranch
+                  - codecommit:GetCommit
+                  - codecommit:GetUploadArchiveStatus
+                  - codecommit:UploadArchive
+                Resource: "*"
+                Effect: Allow
+              - Action:
+                  - codedeploy:CreateDeployment
+                  - codedeploy:GetApplication
+                  - codedeploy:GetApplicationRevision
+                  - codedeploy:GetDeployment
+                  - codedeploy:GetDeploymentConfig
+                  - codedeploy:RegisterApplicationRevision
+                Resource: "*"
+                Effect: Allow
+              - Action:
+                  - codestar-connections:UseConnection
+                Resource: "*"
+                Effect: Allow
+              - Action:
+                  - lambda:InvokeFunction
+                  - lambda:ListFunctions
+                Resource: "*"
+                Effect: Allow
+              - Action:
+                  - cloudformation:CreateStack
+                  - cloudformation:DeleteStack
+                  - cloudformation:DescribeStacks
+                  - cloudformation:UpdateStack
+                  - cloudformation:CreateChangeSet
+                  - cloudformation:DeleteChangeSet
+                  - cloudformation:DescribeChangeSet
+                  - cloudformation:ExecuteChangeSet
+                  - cloudformation:SetStackPolicy
+                  - cloudformation:ValidateTemplate
+                Resource: "*"
+                Effect: Allow
+              - Action:
+                  - codebuild:BatchGetBuilds
+                  - codebuild:StartBuild
+                  - codebuild:BatchGetBuildBatches
+                  - codebuild:StartBuildBatch
+                Resource: "*"
+                Effect: Allow
+              - Effect: Allow
+                Action:
+                  - servicecatalog:ListProvisioningArtifacts
+                  - servicecatalog:CreateProvisioningArtifact
+                  - servicecatalog:DescribeProvisioningArtifact
+                  - servicecatalog:DeleteProvisioningArtifact
+                  - servicecatalog:UpdateProduct
+                Resource: "*"
+              - Effect: Allow
+                Action:
+                  - cloudformation:ValidateTemplate
+                Resource: "*"
+              - Effect: Allow
+                Action:
+                  - s3:*
+                Resource:
+                  - !Sub arn:aws:s3:::${ArtifactBucketName}
+                  - !Sub arn:aws:s3:::${ArtifactBucketName}/*
+              - Effect: Allow
+                Action:
+                  - s3:List*
+                  - s3:Describe*
+                Resource:
+                  - '*'
+
   CodePipeline:
     Type: AWS::CodePipeline::Pipeline
     Properties:
       ArtifactStore:
-        Location: !FindInMap ['PipelineDetails', 'CommonVariables', 'ArtifactBucket']
-        Type: !FindInMap ['PipelineDetails','CommonVariables', 'Provider']
-      RoleArn: !FindInMap ['PipelineDetails', 'CommonVariables','RoleArn']
+        Location: !Ref ArtifactBucket
+        Type: S3
+      RoleArn: !GetAtt CodePipelineRole.Arn
       Stages:
         #Sources the template(s) from CodeCommit
         - Name: Source
@@ -94,6 +203,10 @@ Resources:
               RunOrder: 2
 
 
+Outputs:
+    PipelineRepoName:
+        Description: "Pipeline Repo Name"
+        Value: !GetAtt PipelineFoundationsRepo.Name
 
 
 

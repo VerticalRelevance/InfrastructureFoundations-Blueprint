@@ -9,7 +9,6 @@ import boto3
 
 #     The validation function executes cfn-lint and detect-secrets testing on the requested templates
 def path_creation():
-
     #Creates required boto3 clients
     service_catalog = boto3.client('servicecatalog','us-east-1' )
     ssm=boto3.client('ssm','us-east-1')
@@ -26,13 +25,17 @@ def path_creation():
 
     #iterates through products
     for t in folders:
-
         #Removes hidden files from product list
         if not t.startswith('.'):
-
             #Reads in information from product datafile
-            f=open(f'service_catalog_products/{t}/datafile.json')
-            datafile=json.load(f)
+            datafile=dict()
+
+            try:
+                datafile['RequestType'] = 'Old'
+                datafile['Version'] = int(ssm.get_parameter(Name=f'{t}Version')['Parameter']['Value']) + 1
+            except:
+                datafile['RequestType'] = 'New'
+                datafile['Version'] = 0
 
             #Determines whether existing product needs to be updated
             if datafile['RequestType']=='Old': 
@@ -40,6 +43,7 @@ def path_creation():
                 all_products=service_catalog.search_products_as_admin()
                 product_info=service_catalog.describe_product_as_admin(Id=all_products['ProductViewDetails'][x]['ProductViewSummary']['ProductId'])
                 version=product_info['ProvisioningArtifactSummaries'][0]['Name']
+
                 #Adds new version information to be tested
                 if datafile['Version'] != version:   
                     print("this is an old product")
@@ -59,9 +63,9 @@ def path_creation():
                 new_products['paths'].append(path)  #add path to template for testing
                 new_products['products'].append(f"{t}")  #add name of product for creation
                 datafile['RequestType']='Old'
-                with open(f'service_catalog_products/{t}/datafile.json', 'w') as outfile:
-                    json.dump(datafile, outfile)
-    
+
+            ssm.put_parameter(Name=f'{t}Version',Value=f"{datafile['Version']}", Type='String', Overwrite=True)
+
     #Puts New product information in Parameter Store
     ssm.put_parameter(Name='NEW_PRODUCT_NAME',Value=f"{new_products['products']}", Type='String', Overwrite=True)
     
@@ -73,7 +77,6 @@ def path_creation():
 
     
 def validation(new_products, to_update): 
-   
     #executes tests on new products
     if len(new_products['paths'])>=1:
         for idx,path in enumerate(new_products['paths']): 
@@ -81,7 +84,7 @@ def validation(new_products, to_update):
             os.system(f"cfn-lint -b {path}")
             os.system(f"detect-secrets scan {path}")
             os.system(f"echo finished testing on {new_products['products'][idx]}")
-   
+
     #executes tests on updated products
     if len(to_update['paths'])>=1:
         for idx,path in enumerate(to_update['paths']): 
@@ -89,9 +92,8 @@ def validation(new_products, to_update):
             os.system(f"cfn-lint -b {path}")
             os.system(f"detect-secrets scan {path}")
             os.system(f"echo finished testing on {to_update['products'][idx]}")    
-  
+
 if __name__=='__main__': 
     #creates list of products to create and list of products to update and executes tests
     newProducts, toUpdate= path_creation()
     validation(new_products=newProducts,to_update=toUpdate)
-    

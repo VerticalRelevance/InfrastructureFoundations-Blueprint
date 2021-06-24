@@ -1,5 +1,5 @@
 storage "s3" {
-  bucket     = "hashicorptestingbucket"
+  bucket     = "infrafoundationstest"
   region         = "us-east-1"
 }
 
