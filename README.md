@@ -33,8 +33,8 @@ In order for the pipeline to execute, the template must be named according to th
     Usage: ./deploy.sh [options [parameters]]
 
     Options:
-    -e|--env [env_name], Environment name
-    -r|--region [region_name], Region name
-    -a|--artifact [artifact_bucket], Artifact bucket name
-    -s|--source [source_bucket], Source bucket name
+    -e|--env [env_name], Environment name (default: dev)
+    -r|--region [region_name], Region name (default: us-east-1)
+    -a|--artifact [artifact_bucket], Artifact bucket name (default: pipelineartifactsource)
+    -s|--source [source_bucket], Source bucket name (default: infrafoundationstest)
     -h|--help, Print help
