@@ -1,5 +1,5 @@
 ![VRLogo](src/Images/vr-logo.png)
-# **Dashboard Foundation**
+# **Infrastructure Foundation**
 In this program, a template and data file are uploaded, passed through linting, validated, created, and distributed as a product on to the AWS Service Catalog. From there, the customer can select the instance and have it start up upon request. The end goal of this project is to make the integration of new products into service catalog as simple and streamlined as possible, while also reducing the time spent on testing for compliance and security issues.
 ## **What is this product?**
 ![SolutionImage](src/Images/Flowchart.png)
