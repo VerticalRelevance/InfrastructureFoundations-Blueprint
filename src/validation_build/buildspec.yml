@@ -13,7 +13,7 @@ phases:
   #Navigates to specific directory and executes the python script 
   build:
     commands:
-      - cd validation_build/
+      - cd src/validation_build/
       - python3 validation.py
 #Artifacts to be used down the pipeline
 artifacts:
